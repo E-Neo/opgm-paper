@@ -1,0 +1,68 @@
+\section{Background}\label{sec:background}
+This section introduces the formal definition of property graph matching.
+
+A \emph{property graph} is a \textbf{directed vertex-labeled edge-labeled multigraph with self-edges},
+and key-value properties are stored on vertices and edges.
+We now provide the formal definition of a property graph.
+\begin{definition}[Property Graph~\cite{DBLP:journals/csur/AnglesABHRV17}]
+  A property graph $G$ is a tuple $(V, E, \rho, \lambda, \sigma)$, where:
+  \begin{enumerate}[noitemsep,label={(\arabic*)}]
+  \item $V$ is a finite set of vertices.
+  \item $E$ is a finite set of edges such that $V$ and $E$ have no elements in common.
+  \item $\rho: E \rightarrow (V \times V)$ is a total function.
+    Intuitively, $\rho(e) = (v_1, v_2)$ indicates that $e$ is a directed edge from $v_1$ to $v_2$.
+  \item $\lambda :(V \cup E) \rightarrow L$ is a total function where $L$ is a set of labels.
+    Intuitively, if $v \in V, \rho(v) = l$ (respectively, $e \in E, \rho(e) = l$),
+    then $l$ is the label of vertex $v$ (respectively, edge $e$).
+  \item $\sigma: (V \cup E) \times Prop \rightarrow Val$ is a partial function with $Prop$ a finite set of properties and $Val$ a set of values.
+    Intuitively, if $v \in V, p \in Prop, \sigma(v, p) = s$ (respectively, $e \in E, p \in Prop, \sigma(e, p) = s$),
+    then $s$ is the value of property $p$ for vertex $v$ (respectively, edge $e$) in the property graph $G$.
+  \end{enumerate}
+\end{definition}
+For simplicity, in this paper, we do not discuss the properties i.e., $\sigma$ in $G$,
+because similar techniques can be used as processing the labels $\lambda$.
+Thus, the property graph $G$ can be denoted by $(V(G), E(G), \rho_G, \lambda_G)$.
+Please note that the total function $\rho_G$ is necessary, in general,
+we cannot identify an edge simply by the starting and ending vertices such as $(u_1, u_2)$ as can be done in the simple graph model,
+because multiple edges may appear between the two vertices,
+e.g., there are 2 different edges between $u_1$ and $u_4$ in Figure~\ref{img:pattern}.
+However, we may use the $(u_1, u_2)$ notation if all we care about is that there exist at least one edge between $u_1$ and $u_2$.
+\begin{definition}[Vertex Cover]
+  A vertex cover $V_c$ of a property graph $G$ is a subset of $V(G)$ such that
+  $\forall e \in E(G), \rho_G(e) = (u, v) \implies u \in V_C \lor v \in V_C$.
+\end{definition}
+\begin{definition}[Subgraph]
+  A property graph $F$ is called a subgraph of a property graph $G$, written $F \subseteq G$, if
+  $V(F) \subseteq V(G)$, $E(F) \subseteq E(G)$, $\rho_F$ is a restriction of $\rho_G$, and $\lambda_F$ is a restriction of $\lambda_G$.
+\end{definition}
+Let $G$ be any property graph, and let $S \subseteq V(G)$, then the \emph{induced subgraph} $G[S]$ is the graph whose vertex set is $S$ and whose edge set consists of all of the edges in $E(G)$ that have both endpoints in $S$.
+\begin{definition}[Property Graph Isomorphism]
+  Two property graphs $G$ and $H$ are isomorphic, written $G \cong H$,
+  if there exists bijections $\theta: V(G) \rightarrow V(H)$ and $\phi: E(G) \rightarrow E(H)$ such that
+  $\rho_G(e) = (u, v)$ if and only if $\rho_H(\phi(e)) = (\theta(u), \theta(v))$,
+  $\lambda_G(v) = \lambda_H(\theta(v))$ for all $v \in V(G)$
+  and $\lambda_G(e) = \lambda_H(\phi(e))$ for all $e \in E(G)$;
+  Such a pair of mappings is called an isomorphism between $G$ and $H$.
+\end{definition}
+The bijection $\theta: V(G) \rightarrow V(H)$ is the key in the definition of property graph isomorphism,
+because the bijection $\phi: E(G) \rightarrow E(H)$ is straightforward if $\theta$ is fixed.
+However, due to automorphism, where an \emph{automorphism} of a graph is an isomorphism of the graph to itself,
+the bijection $\theta$ may not be unique.
+\begin{definition}[Property Graph Matching]\label{def:property_graph_matching}
+  Given a data property graph $D$, a pattern property graph $P$ and a searching condition $\psi: PG \rightarrow B$ with $PG$ the set of property graph and $B$ the set of Boolean values,
+  the property graph matching problem is to report the set $\mathcal{I} = \{F | F \subseteq D, F \cong P, \psi(F) = true\}$.
+\end{definition}
+Authors of previous works usually omit the searching condition $\psi$ in their definition of graph matching~\cite{DBLP:conf/sigmod/ShaoCCMYX14,DBLP:journals/pvldb/LaiQLC15,DBLP:conf/sigmod/KimLBHLKJ16,DBLP:journals/pvldb/QiaoZC17}.
+And they adopt a loosely related technique called \emph{symmetry-breaking}~\cite{DBLP:conf/recomb/GrochowK07},
+which ensures there is a unique bijection $\theta: V(P) \rightarrow V(F)$ by providing a partial order on $V(P)$ after exploiting the automorphism of $P$.
+However, as we have stated before, \textbf{the WHERE clause is a ubiquitous part of the query language of a graph database}.
+Users of a real-world graph database usually provide their self-defined searching condition $\psi$ to filter out unnecessary matchings not only symmetry-breaking conditions.
+Thus, the searching condition we defined here can be viewed as a super set of symmetry-breaking.
+We add the searching condition in the definition because it is actually a part of the property graph matching problem,
+and we also found that it can be decomposed and pushed down to lower phase to boost the evaluation of graph matching (Section~\ref{sec:framework}).
+
+A property graph is always directed.
+However, in some cases such as friendship, there is no need to pay attention to the directions of the edges.
+In order to support this kind of relationship, a naive approach is to add a duplicate edge in opposite direction for each edge in the data graph.
+More elegantly, we allow the pattern graph $P$ to contain undirected edges.
+Users can simply ignore the direction by providing undirected edges in $P$ like in industrial graph databases such as Neo4j.

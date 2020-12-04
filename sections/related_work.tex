@@ -1,0 +1,53 @@
+\section{Related Work}
+Despite the fact that general property graph matching problem is seldom discussed in previous works,
+simple graph matching has been widely studied.
+We survey these relevant work in this section.
+\subsection*{In-memory Methods}
+Most of the early work assumes that the data graph and indices are fit in the main memory of a single machine.
+Sparked by Ullmann's backtracking algorithm~\cite{DBLP:journals/jacm/Ullmann76},
+many subgraph matching algorithms have been proposed using different join order, filter rules, and neighborhood indices~\cite{DBLP:journals/pami/CordellaFSV04,DBLP:journals/pvldb/ShangZLY08,DBLP:conf/sigmod/HeS08,DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/LeeHKL12}.
+These algorithms usually use a DFS-style tree-based graph exploration to search the matchings without materializing intermediate results.
+However, these single machine in-memory algorithms are no longer suitable for nowadays billion-node graphs.
+
+To address the scalability problem of single machine in-memory algorithms,
+many distributed subgraph matching algorithms have been proposed~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:conf/sigmod/ShaoCCMYX14,DBLP:journals/pvldb/LaiQLC15,DBLP:journals/pvldb/LaiQLZC16,DBLP:conf/cloud/SerafiniMS17}.
+Because the vertices of the data graph are scattered among machines,
+these algorithms usually match smaller patterns and get the final result by join operation.
+For example, Sun et al.~\cite{DBLP:journals/pvldb/SunWWSL12} introduce a star-like basic matching unit called STwig,
+and implement their subgraph matching algorithm on top of the Trinity~\cite{shao2012the} memory cloud.
+Lai et al.~\cite{DBLP:journals/pvldb/LaiQLC15} propose TwinTwig join using MapReduce,
+where a TwinTwig is either a single edge or two incident edges of a vertex.
+The SEED~\cite{DBLP:journals/pvldb/LaiQLZC16} algorithm use both star and clique as the join units,
+and use clique compression technique to further improve the performance.
+However, these distributed algorithms still suffer from severe memory crisis,
+because the size of partial results grow exponentially with respect to the size of the date graph.
+Moreover, they must be transferred to other machines before join,
+which is the most expensive operation in a parallel system such as MapReduce.
+
+Besides, the optimization of a subgraph matching algorithm relies heavily on the underlying graph model:
+
+Unlabeled undirected simple graph is perhaps the simplest graph model,
+which can be viewed as a special case of property graph with all the vertices and edges have the same label and have no multi-edges.
+Some authors distinguish this kind of graphs from others and designate the matching problem of this kind of graph as \emph{subgraph listing}~\cite{DBLP:conf/sigmod/ShaoCCMYX14,DBLP:journals/jacm/Ullmann76,DBLP:conf/sigmod/ShaoCCMYX14,DBLP:journals/pvldb/LaiQLC15,DBLP:conf/sigmod/KimLBHLKJ16,DBLP:journals/pvldb/LaiQLZC16,DBLP:journals/pvldb/QiaoZC17}.
+CBF~\cite{DBLP:journals/pvldb/QiaoZC17} is the state-of-the-art subgraph listing algorithm,
+which decompose the pattern graph into a several basic structures called \emph{crystals},
+and match these basic units with partial results compressed by the VCBC algorithm.
+However, it is unable to support general property graph because CBF relies on clique listing to match crystals,
+which implies the equivalence of vertices in a clique (complete graph) and is not the case of property graph model because of labels and direction of edges.
+
+Another widely studied graph model is vertex-labeled undirected simple graph~\cite{DBLP:journals/pvldb/ShangZLY08,DBLP:journals/pvldb/SunWWSL12,DBLP:conf/sigmod/HanLL13,DBLP:conf/cloud/SerafiniMS17,DBLP:conf/sigmod/DiasTGM019}.
+Turbo\textsubscript{ISO}~\cite{DBLP:conf/sigmod/HanLL13}, for example, is turbocharged by the concept of \emph{neighborhood equivalence class} (NEC).
+It outperforms other competitors by safely avoid the permutation of all possible vertices in the same NEC\@.
+A NEC is a set of vertices in the pattern graph, where every vertex has the same label and the same set of neighbors.
+However, things become more complex and make it not suitable for the property graph model.
+Because one has to check the labels of vertices, labels of edges, directions of edges in order to test the isomorphism of a property graph, and the real-world multigraphs make life even harder.
+\subsection*{Out-of-core Methods}
+Many out-of-core triangle enumeration algorithms have been proposed~\cite{DBLP:conf/kdd/ChuC11,DBLP:conf/osdi/KyrolaBG12,DBLP:conf/sigmod/HuTC13,DBLP:conf/sigmod/KimHLPY14}.
+However, all these algorithms only deal with triangulation, a special case of the graph matching problem.
+Recently, \textsc{DualSim}~\cite{DBLP:conf/sigmod/KimLBHLKJ16} take a further step and is able to match general unlabeled undirected graphs.
+To avoid the materialization of intermediate results,
+it fixes the data vertices by fixing a set of disk pages and then find all matchings in these pages.
+Apparently, every page of the data graph must be swapped in/out many times in order to get the final result,
+which lead to severe I/O cost.
+In contrast, our approach will load the pages sequentially at most once,
+and we can also use the compressed partial results to boost afterward queries.

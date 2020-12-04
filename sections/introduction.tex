@@ -1,0 +1,346 @@
+\section{Introduction}
+Graph matching is one of the most important applications of graph databases.
+It is widely used in many different fields,
+such as Twitter's recommendation systems~\cite{DBLP:journals/pvldb/GuptaSGGZLL14,DBLP:journals/pvldb/SharmaJBLL16},
+electronic computer-aided design~\cite{DBLP:conf/dac/OhlrichEGS93},
+and protein-protein interaction (PPI) networks~\cite{milenkovic2008uncovering}.
+Nowadays, users of an industrial graph database such as Neo4j\footnote{\url{https://neo4j.com}}
+can easily model and manipulate their data as property graphs and expressing their queries via the Cypher~\cite{DBLP:conf/sigmod/FrancisGGLLMPRS18} query language.
+However, although it's convenient, \textbf{the matching process of these industrial graph databases are notoriously time and resource consuming}.
+As a result, many novel subgraph matching algorithms have been proposed~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:conf/sigmod/HanLL13,DBLP:conf/sigmod/ShaoCCMYX14,DBLP:conf/cloud/SerafiniMS17,DBLP:journals/pvldb/QiaoZC17,DBLP:conf/sigmod/DiasTGM019},
+which usually claim an order or even orders of magnitude of speedup.
+However, \textbf{there are still two gaps that hinder these algorithms from being widely adopted in the real-world scenarios}:
+the first is the gap between the complexity of real-world queries and the simplicity of graphs that the existing algorithms can handle;
+while the second gap is the huge memory and high-quality network requirements for the existing algorithms to query on large graphs and the limitation of resource budget.
+
+As for the first gap, the property graph model is the de facto graph model for graph databases,
+these graphs are directed labeled (both vertices and edges may have labels)
+multigraphs (two vertices may be connected by more than one edges)~\cite{DBLP:journals/pvldb/SahuMSLO17},
+users of an industrial graph database can also provide extra searching conditions via,
+for example, the WHERE clause~\cite{DBLP:journals/csur/AnglesABHRV17}.
+However, \textbf{current studies only focus on simple graphs and extra searching conditions are not supported}
+~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:conf/sigmod/HanLL13,DBLP:conf/sigmod/KimLBHLKJ16,DBLP:journals/pvldb/QiaoZC17,DBLP:journals/pvldb/MhedhbiS19}.
+This limitation is not an engineering problem that can be solved by adding more if/else in the code.
+It is actually a serious algorithm problem because the optimizations of existing algorithms rely heavily on the equivalence of vertices~\cite{DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/QiaoZC17},
+but in a property graph matching problem the condition of partitioning vertices that attached with labels and condition filters into equivalent groups are much more complex.
+For example, Figure~\ref{img:pattern} shows an pattern graph under the property graph model which can be commonly found in recommendation systems of a social network,
+here we represent a labeled directed multigraph and the extra searching condition $C$.
+(In fact, the pattern graph can also contain undirected edges,
+which means one could ignore the direction of some edges in the data graph.)
+In contrast, Figure~\ref{img:simple_pattern} shows a simple unlabeled undirected pattern graph with similar topology.
+This two kinds of data model are essentially different,
+e.g., $u_1$ and $u_4$ are topologically equivalent in Figure~\ref{img:simple_pattern},
+however this equivalence does not hold in Figure~\ref{img:pattern} because of the labels, directions of edges, and extra searching conditions.
+More details of the problem caused by these equivalent conditions will be discussed in Section~\ref{sec:framework}.
+\begin{figure*}[ht]
+  \centering
+  \begin{minipage}[t]{0.45\linewidth}
+    \subcaptionbox{A part of a huge social network data graph.\label{img:data}}{
+      \centering
+      \resizebox{\columnwidth}{!}{
+        \begin{tikzpicture}
+          \begin{scope}[every node/.style={circle,thick,draw}]
+            \node[label={[label distance=0.6]120:Person}] (1) at (-2, 3.464) {$v_1$};
+            \node[label={[label distance=0.6]180:Person}] (2) at (-4, 0) {$v_2$};
+            \node[label={[label distance=0.6]60:Person}] (3) at (2, 3.464) {$v_3$};
+            \node[label={[label distance=0.6]-120:Media}] (4) at (-2, -3.464) {$v_4$};
+            \node[label={[label distance=0.6]0:Person}] (5) at (4, 0) {$v_5$};
+            \node[label={[label distance=0.6]-60:Media}] (6) at (2, -3.464) {$v_6$};
+            \node (7) at (-5, -3.464) {$v_{\dots}$};
+          \end{scope}
+          \begin{scope}[>={Stealth[black]},
+              every node/.style={fill=white,circle},
+              every edge/.style={draw=black}]
+            \path [->] (1) edge[bend right=15] node[rectangle,rotate=60] {FOLLOWS} (2);
+            \path [->] (2) edge[bend right=15] node[rectangle,rotate=60] {FOLLOWS} (1);
+            \path [->] (1) edge[bend left=15] node[rectangle] {FOLLOWS} (3);
+            \path [->] (3) edge[bend left=15] node[rectangle] {FOLLOWS} (1);
+            \path [->] (3) edge node[rotate=-60] {FOLLOWS} (5);
+            \path [->] (1) edge[bend right=10] node[rectangle,rotate=90] {LIKES} (4);
+            \path [->] (1) edge[bend left=10] node[rectangle,rotate=90] {PUBLISHES} (4);
+            \path [->] (2) edge node[rotate=-60] {LIKES} (4);
+            \path [->] (3) edge node[rotate=60] {LIKES} (4);
+            \path [->] (3) edge node[rotate=90] {LIKES} (6);
+            \path [->] (5) edge node[rotate=60] {LIKES} (6);
+            \path [->] (7) edge node {LIKES} (4);
+          \end{scope}
+        \end{tikzpicture}
+      }
+    }
+  \end{minipage}
+  \hfill
+  \begin{minipage}[b]{0.45\linewidth}
+    \subcaptionbox{A pattern graph under the property graph model.\label{img:pattern}}[\linewidth]{
+      \centering
+      \resizebox{\columnwidth}{!}{
+        \begin{tikzpicture}
+          \begin{scope}
+            \node (c1) at (3.1, -1.5) {$C: (u_1.id < u_2.id) \land$};
+            \node (c2) at (3.1, -2) {$\qquad(u_1.id < u_3.id) \land$};
+            \node (c3) at (3.1, -2.5) {$\lnot ((u_2.id \ge u_3.id) \lor (u_4.year \ge 2020))$};
+          \end{scope}
+          \begin{scope}[every node/.style={circle,thick,draw}]
+            \node[label={[label distance=0.6]90:Person}] (1) at (0, 2.25) {$u_1$};
+            \node[label={[label distance=1]180:Person}] (2) at (-2.25, 0) {$u_2$};
+            \node[label={[label distance=1]0:Person}] (3) at (2.25, 0) {$u_3$};
+            \node[label={[label distance=0.6]270:Media}] (4) at (0, -2.25) {$u_4$};
+          \end{scope}
+          \begin{scope}[>={Stealth[black]},
+              every node/.style={fill=white,circle},
+              every edge/.style={draw=black}]
+            \path [->] (1) edge[bend left=15] node[rectangle,rotate=45] {FOLLOWS} (2);
+            \path [->] (2) edge[bend left=15] node[rectangle,rotate=45] {FOLLOWS} (1);
+            \path [->] (1) edge[bend left=15] node[rectangle,rotate=-45] {FOLLOWS} (3);
+            \path [->] (3) edge[bend left=15] node[rectangle,rotate=-45] {FOLLOWS} (1);
+            \path [->] (1) edge[bend left=15] node[rectangle,rotate=-90] {PUBLISHES} (4);
+            \path [->] (1) edge[bend right=15] node[rectangle,rotate=-90] {LIKES} (4);
+            \path [->] (2) edge node[rotate=-45] {LIKES} (4);
+            \path [->] (3) edge node[rotate=45] {LIKES} (4);
+          \end{scope}
+        \end{tikzpicture}
+      }
+    }
+
+    \subcaptionbox{A pattern graph under the simple graph model.\label{img:simple_pattern}}[\linewidth]{
+      \centering
+      \resizebox{0.5\columnwidth}{!}{
+        \begin{tikzpicture}
+          \begin{scope}[every node/.style={circle,thick,draw}]
+            \node (1) at (0, 2.25) {$u_1$};
+            \node (2) at (-2.25, 0) {$u_2$};
+            \node (3) at (2.25, 0) {$u_3$};
+            \node (4) at (0, -2.25) {$u_4$};
+          \end{scope}
+          \begin{scope}[>={Stealth[black]},
+              every node/.style={fill=white,circle},
+              every edge/.style={draw=black}]
+            \path (1) edge (2);
+            \path (1) edge (3);
+            \path (1) edge (4);
+            \path (2) edge (4);
+            \path (3) edge (4);
+          \end{scope}
+        \end{tikzpicture}
+      }
+    }
+  \end{minipage}
+\end{figure*}
+
+For the second gap, due to the well-known locality problem of graph exploration,
+current researches focus on using distributed systems to handle large graphs.
+However, \textbf{keeping all the data in memory is extremely uneconomic for graph matching problem} because
+\begin{enumerate*}[label={(\arabic*)}]
+\item The memory needs to not only hold all the graph data but also the intermediate results of a graph matching algorithm,
+  which can usually be dozen times larger than the original graph (Table~\ref{tab:partial_results}).
+  And these systems usually require tens or even hundreds of GB of memory, which is rarely seen on commercial machines;
+\item The locality problem of graph exploration heavily effects the scalability of these distributed algorithms,
+  so that they require high-quality network and still have only sub-sub-linear scalability~\cite{DBLP:conf/sigmod/DiasTGM019};
+\item The startup overhead of distributed algorithms also reduces the response time, and becomes a bottleneck for small graphs.
+  For example, to match on CiteSeer, it takes Fractal~\cite{DBLP:conf/sigmod/DiasTGM019} \@??? to boot the system,
+  while executing the algorithm itself only takes \@???.
+\end{enumerate*}
+Moreover, even though distributed computing resources are available from commercial cloud providers,
+it is still a hard problem to partition graphs across the cluster nodes,
+optimizing and debugging distributed algorithms~\cite{DBLP:journals/im/LeskovecLDM09,DBLP:conf/osdi/KyrolaBG12}.
+Not to mention that, it is also financially expensive for ordinary users to purchase and maintain a cluster.
+
+Therefore, in order to match up with the need of real-world graph databases,
+\textbf{we must provide an efficient and scalable disk-based solution that can match property graphs}.
+\subsection*{Challenges \& Contributions}
+As discussed in above, it is especially valuable to design an real-world property graph matching algorithm
+that can both handle complex graphs and graph queries and does not require all the data to be held in memory
+(i.e., execute fast even in an out-of-core environment).
+However, there are many challenges towards this object.
+
+As a summary, there are two kinds of approaches exist to match subgraphs,
+differ on whether intermediate results are materialized or not:
+The first kind of approaches are based on Ullmann's backtracking tree-search method
+~\cite{DBLP:journals/jacm/Ullmann76,DBLP:journals/pvldb/LeeHKL12,DBLP:conf/sigmod/HanLL13,DBLP:conf/sigmod/KimLBHLKJ16},
+which does not materialized intermediate results and is usually adopted by earlier in-memory algorithms.
+However, \textbf{this strategy is not very suitable for a graph database}:
+On one hand, it may incur considerable disk reads since the data vertices are scattered among the pages in disk.
+On the other, the evaluation of new queries cannot be boosted by previous queries, because this method doesn't generate reusable partial results.
+The second kind is join-based~\cite{DBLP:conf/sigmod/ShaoCCMYX14,DBLP:journals/pvldb/LaiQLC15,DBLP:journals/pvldb/QiaoZC17}, which is also adopted by this paper.
+It works logically as follows:
+\begin{enumerate*}[label={(\arabic*)}]
+\item Decompose the pattern graph into a series of smaller subgraphs, e.g., edges,
+  and match these subgraphs by filtering the data graph,
+\item materialize the partial results which can be used for afterward queries without repetitive computation,
+\item and the final result is obtained by joining them together.
+\end{enumerate*}
+However, in order to design an efficient disk-based property graph matching system,
+\textbf{challenges have to be faced in each of these steps}.
+\subsubsection*{Filter on Data Graph}
+During the first filtering stage, two challenges exist.
+\textbf{One is that the result of the filtering process should be as small as possible}.
+Therefore, a simple edge-based join (the pattern graph is decomposed into a series of edges) method is inefficient,
+as matching an edge cannot make use of the graph structure information,
+which will lead to numerous useless partial results.
+In contrast, a more complex decomposing method requires a properly designed graph storage format that allow efficient indices to be preserved and updated for faster filtering.
+\textbf{The other challenge is reducing I/O, essentially the random access problem},
+which is the curse for performance improving of all out-of-core systems.
+\textbf{It is desirable that the filtering process scan at most once of the data graph stored on disk},
+hence avoid unnecessary reads and cause no random accesses.
+
+We adopt two techniques to address the first challenge:
+First, \textbf{pattern graph is decomposed into a series of stars (e.g., Figure~\ref{img:stars}) rather than edges},
+which is similar to the STwig structure~\cite{DBLP:journals/pvldb/SunWWSL12}.
+It contains a root vertex and the neighbor vertices of the root.
+Distinct from STwig, \textbf{our star structure support property graph features}, e.g., multigraph, edge labels, etc,
+whereas STwig can only match undirected simple graph.
+More over, \textbf{our decomposition algorithm will keep more structural information of the pattern graph} (see Section~\ref{sec:framework} for more details),
+which can reduce the size of partial results by up to \@???\% as our experiments show.
+Second, \textbf{our algorithm will push the searching conditions provided by users down to the star matching phase,
+rather than keep them until we get the partial results}.
+Specifically, it automatically rewrite the WHERE clause and extract useful information by applying Boolean algebra,
+then apply these extra information to filter out useless partial results.
+For example, in Figure~\ref{img:stars}, $C_1$, $C_2$ and $C_3$ was extracted from the original $C$.
+Experiments shows that this technique will reduce \@???\% to \@???\% of the intermediate results.
+\begin{figure}[ht]
+  \centering
+  \resizebox{.6\columnwidth}{!}{
+    \begin{tikzpicture}
+      \begin{scope}
+        \node (C1) at (-3, 1.75) {$C_1: u_1.id < u_2.id$};
+        \node (c2) at (3, 1.75) {$C_2: u_1.id < u_3.id$};
+        \node (c4) at (3, -2.5) {$C_3: u_4.year < 2020$};
+      \end{scope}
+      \begin{scope}[every node/.style={circle,thick,draw}]
+        \node[label={[label distance=0.6]90:Person}] (1) at (0, 2.25) {$u_1$};
+        \node[label={[label distance=1]180:Person}] (2) at (-2.25, 0) {$u_2$};
+        \node[label={[label distance=1]0:Person}] (3) at (2.25, 0) {$u_3$};
+        \node[label={[label distance=0.6]270:Media}] (4) at (0, -2.25) {$u_4$};
+      \end{scope}
+      \begin{scope}[>={Stealth[black]},
+          every node/.style={fill=white,circle},
+          every edge/.style={draw=black}]
+        \path [->] (1) edge[bend left=15] node[rectangle,rotate=45] {FOLLOWS} (2);
+        \path [->] (2) edge[bend left=15] node[rectangle,rotate=45] {FOLLOWS} (1);
+        \path [->] (1) edge[bend left=15] node[rectangle,rotate=-45] {FOLLOWS} (3);
+        \path [->] (3) edge[bend left=15] node[rectangle,rotate=-45] {FOLLOWS} (1);
+        \path [->] (1) edge[bend left=15] node[rectangle,rotate=-90] {PUBLISHES} (4);
+        \path [->] (1) edge[bend right=15] node[rectangle,rotate=-90] {LIKES} (4);
+      \end{scope}
+    \end{tikzpicture}
+  }
+  \resizebox{.6\columnwidth}{!}{
+    \begin{tikzpicture}
+      \begin{scope}
+        \node (c4) at (2.7, -2.5) {$C_3: u_4.year < 2020$};
+      \end{scope}
+      \begin{scope}[every node/.style={circle,thick,draw}]
+        \node[label={[label distance=0.6]90:Person}] (1) at (0, 2.25) {$u_1$};
+        \node[label={[label distance=1]180:Person}] (2) at (-2.25, 0) {$u_2$};
+        \node[label={[label distance=1]0:Person}] (3) at (2.25, 0) {$u_3$};
+        \node[label={[label distance=0.6]270:Media}] (4) at (0, -2.25) {$u_4$};
+      \end{scope}
+      \begin{scope}[>={Stealth[black]},
+          every node/.style={fill=white,circle},
+          every edge/.style={draw=black}]
+        \path [->] (1) edge[bend left=15] node[rectangle,rotate=-90] {PUBLISHES} (4);
+        \path [->] (1) edge[bend right=15] node[rectangle,rotate=-90] {LIKES} (4);
+        \path [->] (2) edge node[rotate=-45] {LIKES} (4);
+        \path [->] (3) edge node[rotate=45] {LIKES} (4);
+      \end{scope}
+    \end{tikzpicture}
+  }
+  \caption{The stars decomposed from the pattern graph in Figure~\ref{img:pattern}.}\label{img:stars}
+\end{figure}
+
+To address the second challenge, \textbf{we design a compact disk format of the data graph that can match stars efficiently.
+With the help of a simple label-to-vertex index, we can quickly locate the candidate pages and only these pages will be swapped into memory}.
+To avoid unnecessary page swap even further, \textbf{we group the pattern stars with same root label together,
+so these stars will be matched in a single sequential read}.
+That is to say, every page of the data graph will be read sequentially at most once.
+Experiments shows that, for a billion-node graph, we can match a star in less than \@???.
+\subsubsection*{Compression of Intermediate Results}
+The intermediate results produced during the graph matching processes is a double-edges sword.
+Even though it can be used as caches to boost afterward matching queries,
+\textbf{the size of the partial results grows exponentially when the size of the pattern graph grows,
+which heavily affect the I/O cost}.
+For example there are ${n \choose 3 }= \mathcal{O}(n^3)$ triangles in a complete graph with $n$ vertices,
+which is far more larger than the original graph ($\mathcal{O}(n^2)$ edges).
+Table~\ref{tab:partial_results} gives more practical examples.
+To address this challenge, we adopt and extend a novel lossless graph compression algorithm called VCBC~\cite{DBLP:journals/pvldb/QiaoZC17}.
+The idea of this algorithm is straightforward:
+By grouping the matching results with the same vertex cover $V_C$ in the data graph,
+the vertices in $V_C$ will be stored only once and other vertices will be stored as separate sets without repetition
+(We call it \textsc{SuperRow} because after doing Cartesian production, it is equivalent to a sequence of relationship rows.)
+VCBC has a significant compression ratio of several orders of magnitude~\cite{DBLP:journals/pvldb/QiaoZC17}.
+
+\begin{table}
+  \begin{tabular}{llll}
+    \toprule
+    Data set & $|V|$ & $|E|$ & $|\text{Partial Results}|$ \\
+    \midrule
+    CiteSeer & 3312 & 4591 & \@??? \\
+    MiCo & & & \\
+    US Patents & & & \\
+    YouTube & & & \\
+    \bottomrule
+  \end{tabular}
+  \caption{The size of partial results on different data sets. (TODO)}\label{tab:partial_results}
+\end{table}
+However, challenge still have to be faced to implement VCBC efficiently for an out-of-core property graph matching system,
+since \textbf{VCBC was originally designed for unlabeled undirected simple graphs} like the graph in Figure~\ref{img:simple_pattern}~\cite{DBLP:journals/pvldb/QiaoZC17}.
+As we have stated before, the vertices in a simple graph are isotropic,
+e.g., all the neighbors connected to the root are equivalent,
+so they can be stored together in the compressed intermediate result and the disk-write is sequential.
+But \textbf{things are different for a property graph}.
+In Figure~\ref{img:stars}, for example, $u_2$ and $u_4$ have different labels,
+and their connections to the root $u_1$ are also distinctive.
+So the matching vertices of them can not be stored in the same place,
+and it is unknown where to store these matching results ahead of time.
+
+To address this problem, a naive approach may use buffers in core to store the partial matching vertices,
+and then copy them to disk after finishing the graph scanning.
+However, the naive method will encounter numerous data movement,
+and the buffer may also exceed the size of the core because of the existence of vertices with high degree,
+e.g., popular social media usually have billions of viewers.
+Therefore, \textbf{we extend the original VCBC to make it support property graphs by proposing a novel space allocation method,
+which avoid the unnecessary data movement and will write the compressed data in a sequential style}.
+Specifically, we use the statistical information of the data graph to get the upper bound of the matching result,
+and calculate the locations to store matched vertices based on these information.
+By using memory-mapped file, the data will be appended to the pages on disk, which avoid the random disk access problem.
+Experiments shows that our extended VCBC algorithm still keep a very high compression ratio by up to \@???,
+and the run time to write the compressed data for a billion node graph is just \@???.
+\subsubsection*{Join on Compressed Data}
+Since the intermediate results are now compressed,
+a new challenge arises: How to join on these compressed data efficiently?
+Firstly, \textbf{we still have to face the space allocation problem because the join result is also compressed}.
+We adopt a similar technique as the one used in the last section to get the upper bounds of the matched result sets,
+and use these information to make the space allocation, so the result sets can be appended sequentially afterward.
+Secondly, as the basic operation unit is set of vertices, which is distinct from binary join,
+\textbf{the join on compressed data must calculate set intersection efficiently}.
+To address this challenge, we propose an efficient merge intersection algorithm,
+which avoids the random access problem and will run in $\mathcal{O}(m + n)$ time without the need of sorting.
+Specifically, the vertices are sorted ahead of time in the data graph,
+and the order will always hold in the intermediate results without further sorting.
+So the interaction can be achieved efficiently on disk by two sequential reads and one sequential write,
+without the need of complex indices and random I/Os.
+As experiments show, our join algorithm only takes \@???\% of the total run time, and the memory consumption is below \@???.
+\subsubsection*{Summary}
+We have implemented the prototype of this out-of-core property graph matching framework,
+and run extensive experiments on real graphs with different scales.
+The results demonstrate that our solution outperforms the state-of-the-art methods~\ref{sec:experiments}.
+Most excitingly of all, compared to distributed solutions,
+we can solve the same problem on a single PC in a reasonable time with only \@???\% of the CPUs, and \@???\% of the memory.
+
+The contributions of our work are summarized as follows:
+\begin{itemize}[noitemsep]
+\item We propose an efficient our-of-core property graph matching solution,
+  which can well handle graphs ranging from small to billion node graphs.
+\item We propose a new method to decompose pattern graphs and user provided searching conditions,
+  which will help to filter out useless matches in an early stage.
+\item We design a simple and effective disk format to store complex property graphs,
+  which can explore the data graph efficiently and is simple enough to be ported to existing databases.
+\item We adopt a novel graph compression algorithm and extend it to support property graph,
+  which reduces the size of intermediate results significantly.
+\item We propose an efficient join method for compressed data, without the need of complex indices,
+  we can get the results by sequential disk accesses.
+\end{itemize}
+
+The rest of the paper is organized as follows: we introduce preliminaries and related works in Section~\ref{sec:background}.
+Section~\ref{sec:framework} elaborates the design of our solution.
+We show the experiment results in Section~\ref{sec:experiments}.
+And finally, we conclude the work in Section~\ref{sec:conclusion}.
