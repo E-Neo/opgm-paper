@@ -1,6 +1,6 @@
 \section{Background}\label{sec:background}
 This section introduces the formal definition of property graph matching.
-
+\subsection{Property Graph Model}
 A \emph{property graph} is a \textbf{directed vertex-labeled edge-labeled multigraph with self-edges},
 and key-value properties are stored on vertices and edges.
 We now provide the formal definition of a property graph.
@@ -31,6 +31,7 @@ However, we may use the $(u_1, u_2)$ notation if all we care about is that there
   A vertex cover $V_c$ of a property graph $G$ is a subset of $V(G)$ such that
   $\forall e \in E(G), \rho_G(e) = (u, v) \implies u \in V_C \lor v \in V_C$.
 \end{definition}
+\subsection{Property Graph Matching Problem}
 \begin{definition}[Subgraph]
   A property graph $F$ is called a subgraph of a property graph $G$, written $F \subseteq G$, if
   $V(F) \subseteq V(G)$, $E(F) \subseteq E(G)$, $\rho_F$ is a restriction of $\rho_G$, and $\lambda_F$ is a restriction of $\lambda_G$.
