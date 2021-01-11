@@ -1,23 +1,2 @@
-%%
-%% The abstract is a short summary of the work to be presented in the
-%% article.
 \begin{abstract}
-Graph matching is one of the most important applications in graph databases.
-There are many works have claimed that they can be an order or even orders of magnitude faster
-than the existed industrial graph databases.
-However, there are still two big gaps that hinder these algorithms from being widely adopted in the real-world scenarios:
-\begin{enumerate*}[label={(\arabic*)}]
-\item the complexity of real-world queries and the simplicity of graphs that the existing algorithms can handle; and
-\item the huge memory and high-quality network requirements for the existing algorithms to query on large graphs and the limitation of resource budget.
-\end{enumerate*}
-
-To resolve the above problems, we design and implement a practical property graph matching algorithm
-that can execute efficiently in an out-of-core enviroment.
-The innovation of our algorithm includes
-\begin{enumerate*}[label={(\arabic*)}]
-\item a novel decomposition method of the graph query that can handle both complex graph patterns and property constraints specified by WHERE clauses;
-\item an optimized compression representation of the intermediates results and the corresponding join algorithm that do not need to fully decompress it untill the final results;
-\item a set of effective data structures for disk-based graph indexes and join process.
-\end{enumerate*}
-The evaluation results show that \@???.
 \end{abstract}

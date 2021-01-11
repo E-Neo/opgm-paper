@@ -1,270 +1,122 @@
-\section{Operations on Compressed Matching Result}
-\subsection{Compression of Intermediate Result}\label{sec:compression_of_intermediate_result}
-In this section, we describe our efforts to reduce the I/O cost of materializing intermediate results by compression.
-Since both the star matching results and the join results are compressed,
-to make it clearly, we'll focus on the compression of star matching results in this section,
-and leave the compression of join results in Section~\ref{sec:join_on_compressed_data}.
-Firstly, we'll give a brief review of the theoretical VCBC algorithm in Section~\ref{sec:vcbc},
-and then provide our contributions to make it practical for out-of-core environment in the following subsections.
-\subsubsection{Vertex Cover Based Compression}\label{sec:vcbc}
-Recall that in Definition~\ref{def:property_graph_matching},
-the property graph matching problem is to report the set $\mathcal{I}$.
-If we specify an order on the vertices of the pattern graph $P$,
-then $\mathcal{I}$ could be represented by a sequence of rows with each row containing the vertices in $D$ that match the vertices in $P$ with the order we specified.
-The space to store $\mathcal{I}$ is proportional to the number of matching graphs if we store these rows naively.
-Unfortunately, the size of matching result is super-linear with respect to the size of the data graph.
-Thus, a compression algorithm with a significant compression ratio is required to reduce the I/O cost for materializing the intermediate matching results.
-The \emph{vertex cover based compression} (VCBC)~\cite{DBLP:journals/pvldb/QiaoZC17} algorithm is such an attempt to resolve the output crisis of graph matching using output compression.
+\section{An I/O Efficient Vertex-Centric Storage Method for Property Graph}\label{sec:storage}
+The random access problem is a well known hard problem for out-of-core systems,
+especially for the graph related problem, which is notorious for its poor locality~\cite{DBLP:conf/osdi/KyrolaBG12}.
+The traditional way to store graphs on disk is the double list method:
+Stores the in-edges and out-edges separately for each vertex,
+via the compressed sparse column (CSC) and the compressed sparse row (CSR) format~\cite{DBLP:conf/sc/PearceGA10}.
+However, we find that this storage method have limitations to solve the real-world property graph matching problem:
+\emph{Random disk accesses are unavoidable when in/out-edges are stored separately}.
 
-The authors of VCBC define the \emph{helve} of an instance of $P$,
-where the instance $F$ is a subgraph of the data graph $D$ such that $F \cong P$.
-\begin{definition}[Helve]
-  Let $V_C = \{u_1, u_2, \dots, u_k\}$ be a vertex cover of $P$.
-  Let $F$ be an instance of $P$.
-  The helve of $F$ is the vertored images of $V_C$ under the instance-bijection $f_F$:
-  \[\mathcal{H}_{V_C}(F) = (f_F(u_1), f_F(u_2), \dots, f_F(u_k))\]
-  It is also denoted as $\mathcal{H}(F)$ if $V_C$ is obvious in the context.
-  Similarly, the helves of an instance set $\mathcal{I}$ is defined as
-  \[\mathcal{H}(\mathcal{I}) = \{\mathcal{H}(F) | F\in \mathcal{I}\}\]
-\end{definition}
-Let $h_1, h_2, \dots, h_l$ be the $l$ helves in $\mathcal{H}(\mathcal{I})$,
-the compression of $\mathcal{I}$ could then be obtained in the following steps:
-\begin{enumerate}[noitemsep]
-\item Define the \emph{conditional instance set} $\mathcal{I}|h_i$ of $h_i$ as
-  \[ \mathcal{I}|h_i = \{F | \mathcal{H}(F) = h_i\} \]
-\item For $\mathcal{I}|h_i$,
-  identify the \emph{conditional image set} $\operatorname{Img}_P(u|h_i)$ for each vertex $u \in V(P)$:
-  \[ \operatorname{Img}_P(u|h_i) =\{f_F(u) | F \in (\mathcal{I}|h_i)\} \]
-\item Compress $\mathcal{I}|h_i$ with the concatenation of the conditional images $\operatorname{Img}_P(u|h_1)$ for all vertices in $V(P)$, and we name $\operatorname{code}(\mathcal{I}|h_i)$ as \textsc{SuperRow} in this paper:
-  \[ \operatorname{code}(\mathcal{I}|h_i) = \{ \operatorname{Img}(u|h_i) | u \in V(P) \} \]
-\item Obtain the VCBC $\operatorname{code}(\mathcal{I})$ by concatenation:
-  \[ \operatorname{code}(\mathcal{I}) = \{ \operatorname{code}(\mathcal{I}|h_i) | i \in [1,l]\} \]
-\end{enumerate}
-For a star graph, the root is the vertex cover.
-For example, in Figure~\ref{img:stars}, $u_1$ and $u_4$ are the roots and the vertex cover.
+To solve the random disk access problem, in this section,
+we propose a novel property graph storage engine from a vertex-centric point of view.
+Noticeably, only part of the huge billion node data graph would be read when solving a property graph matching problem,
+with the help of a few easy to implement indices.
+And all the disk reads are sequential.
+Moreover, by using the property graph matching engine that will be discussed in the next section,
+we would be sure that the huge data graph would be read at most once.
+\subsection{Scan the Data Graph Sequentially}
+The property graph matching problem requires the complete connection information between vertices,
+however, the conventional double list storage method break up the completeness and results in random disk accesses.
 
-The decompression process works as follows to restore $\mathcal{I}$ from $\operatorname{code}(\mathcal{I})$:
-\begin{enumerate}[noitemsep]
-\item For each $\operatorname{code}(\mathcal{I}|h_i)$, let $S$ be the Cartesian product over the image sets:
-  \[ S = \prod_{u \in V(P)} \operatorname{Img}(u | h_i) \]
-\item Let $\mathcal{I}'|h_i$ be the set of tuples in $S$ without duplicated vertices that are validated by the searching condition $\psi$
-\item Finally, $\mathcal{I}' = \bigcup_{i \in [1, l]}(\mathcal{I}'|h_i)$ is the decompressed matching result.
-\end{enumerate}
+Consider the patten graph in Figure~\ref{img:celebrity_star}, which simply finds friendship pairs in a data graph.
+If two vertices in the data graph, say $v_i$ and $v_j$, are supposed to match the pattern,
+we must be sure that $v_i$ and $v_j$ follows each other at the same time.
+This kind of neighbor checking is also the most essentially building block of a property graph matching engine.
 
-VCBC is lossless such that $\mathcal{I}' = \mathcal{I}$~\cite{DBLP:journals/pvldb/QiaoZC17}.
-The data compression ratio of VCBC $\rho(\mathcal{I})$ could be calculated by
-\[ \rho(\mathcal{I}) = \frac{|\mathcal{I}|}{|\operatorname{code}(\mathcal{I})|} \]
-In fact, the compression ratio could have several orders of magnitude since VCBC postpone the resource consuming Cartesian product to the decompression stage.
-
-There is one thing to note that, the VCBC algorithm only introduce a theoretical method to compress the matching results.
-\textbf{For a real-world out-of-core environment, many practical challenges have to be solved},
-for example, how to design the disk format to store the VCBC compressed data efficiently?
-How to write the compressed data sequentially to disk?
-And how to decompress the VCBC data file in a sequential manner?
-These challenges would be solved in the following two subsections.
-\subsubsection{NeighborInfo Equivalence Classes}\label{sec:equivalence_classes}
-VCBC save the space by postponing the Cartesian product,
-however, this is not the only way to save space.
-In this subsection, we discuss how to reduce the size of matching results further by finding equivalence classes in the pattern graph, and finally introduce the disk format of our compressed data.
-
-In Section~\ref{sec:data_graph_scanning}, we introduce the concept \textsc{NeighborInfo}.
-In a star graph $S$, suppose that the leaves $n_1, n_2, \dots, n_k$ have the same \textsc{NeighborInfo},
-then their conditional image set would also be the same $\operatorname{Img}_S(n_1 | h_i) = \operatorname{Img}_S(n_2 | h_i) = \cdots = \operatorname{Img}_S(n_k | h_i)$ because of symmetry.
-These leaves are equivalent under the relation ``has the same \textsc{NeighborInfo}'',
-so we could store the image set only once.
-This technique is of great importance for ``celebrity'' rooted stars,
-otherwise we have to store the numerous followers multiple times.
-
-For some pattern graph, e.g., complete undirected graph with all the vertices and edges share the same label,
-the stars decomposed from it would always be the same.
-Formally, we say that these stars are equivalent under the relation ``has the same \textsc{Characteristic}'',
-where the \textsc{Characteristic} is defined as follows:
-\begin{definition}[Characteristic]
-  A \textsc{Characteristic} of a star $S$ is a tuple $(\psi, l, N)$, where:
-  \begin{enumerate}[noitemsep,label={(\arabic*)}]
-  \item $\psi$ is the vertex constraint for the root of $S$.
-  \item $l$ is the label of the root of $S$.
-  \item $N = \{ \textsc{NeighborInfo}(n) | n \in S.leaves\}$ is a set of \textsc{NeighborInfo}s of the leaves in $S$.
-  \end{enumerate}
-\end{definition}
-Apparently, isomorphic stars have the same \textsc{Characteristic}.
-These equivalent stars could be matched once for all,
-and the matching results could be stored only once.
-
-\textbf{The previous \textsc{NeighborInfo} and \textsc{Characteristic}
-are two basic equivalence classes that can be used to avoid duplication in the star matching results.}
-In Section~\ref{sec:join_on_compressed_data} we will show that these equivalence classes can also be used to reduce I/O cost for joined results.
-Before that, we will discuss how to design the disk format for the compressed data.
-Figure~\ref{img:result_disk_format} shows the disk format of our compressed matching result.
-Theoretically, the VCBC compressed data is a sequence of \textsc{SuperRow}s,
-where each \textsc{SuperRow} contains a list of conditional image sets $\operatorname{Img}_P(u | h_i)$ for $u \in V(P)$.
-However, \textbf{because of the \textsc{NeighborInfo} equivalence class, we don't have to store all the conditional image sets}.
-To address this problem, we group the vertices by their \textsc{NeighborInfo} and store the conditional image set for each \textsc{NeighborInfo} instead.
-For each conditional image set, we store the starting position \mintinline{text}{pos} and the size of the set \mintinline{text}{len}, and the elements are stored at the end of each \textsc{SuperRow}.
+In the data graph, $v_1$ has $m$ in-edges and $n$ out-edges, and suppose that they are stored separately in the traditional way.
+In order to determine whether $v_1$ could match $u_1$,
+one has to scan the in-edges (or equally, the out-edges) of $v_1$ and then check whether the visited neighbor is in the out-edges (or in-edges) list.
+This scan and check method would significantly slow down the graph matching process,
+because the checking process results in random disk read.
+For real world power-law graphs, where the celebrities or trending topics have a huge amount of followers,
+the in/out-edges lists stored on disk have to be swapped in and out frequently during the scan and check process as a result of the random disk access pattern.
+And it would be more complicated if there are more than two edges between $u_1$ and $u_2$ in the pattern graph.
 \begin{figure}[ht]
   \centering
-  \begin{minted}[fontsize=\tiny]{text}
-+-------------+-------------+-------------+
-|   num_rows  |   num_eqvs  |  num_cover  |
-+-------------+-------------+-------------+
-+-----------------------------------------+
-|                num_bytes                |<------------------+
-+-----------------------------------------+                   |
-+--------------------+--------------------+                   |
-|         pos        |         len        |<-+                |
-+--------------------+--------------------+  |                |
-|         pos        |         len        |  |                |
-+--------------------+--------------------+  |- num_eqvs rows |
-                    ...                      |                |
-+--------------------+--------------------+  |                |
-|         pos        |         len        |<-+                |- One SuperRow
-+--------------------+--------------------+                   |
-+-----------------------------------------+                   |
-|                    v                    |                   |
-+-----------------------------------------+                   |
-|                    v                    |                   |
-+-----------------------------------------+                   |
-                    ...                                       |
-+-----------------------------------------+                   |
-|                    v                    |<------------------+
-+-----------------------------------------+
-  \end{minted}
-  \caption{Disk format for compressed matching result.}\label{img:result_disk_format}
+  \includegraphics[width=0.38\textwidth]{img/celebrity_star.pdf}
+  \caption{A celebrity with a huge amount of followers and a pattern graph to find friendship pairs in it.}\label{img:celebrity_star}
 \end{figure}
-\subsubsection{Space Allocation}\label{sec:space_allocation}
-In Section~\ref{sec:data_graph_scanning} we showed that during the star matching process,
-the data graph file would only be read sequentially at most once without random disk access.
-Now in this subsection, \textbf{we will show that the matching result of stars would also be written sequentially with new data appended to the result file}.
 
-For a star graph $S$, the vertex cover is the root, so the first image set for each \textsc{SuperRow} always contains only one element and this is the helve $h_i$.
-However, for the leaves in the star, the length of their image sets could only be known after all the neighbors of the helve are scanned in the data graph.
-That is to say, $|\operatorname{Img}_S(n|h_i)|$ would be known only if $\operatorname{Img}_S(n|h_i)$ is already written to file for $n \in S.leaves$.
+The source of the problem is that the in/out-edges are stored separately in the conventional method,
+whereas the property matching process need to retrieve both in- and out- connection information to determine whether a neighbor vertex could be matched.
+Based on this observation, we propose a vertex-centric property graph storage method that always keeps the necessary connection information together for graph matching.
+Take Figure~\ref{img:data_neighbors} as an example, which shows the logical storage structure for the celebrity in Figure~\ref{img:celebrity_star}.
+Real-world property graphs are directed labeled graphs, instead of splitting the edges into in/out-edges,
+we treat all the neighbors equally and store the connection information together with the neighbor vertex.
+The specific edge information (direction, types) could be obtained by the position of the stored edge labels, i.e.,
+the upper labels means the direction is pointed to the root and the lower labels means the opposite.
+For example, the ``:FOLLOWS'' at the upper right corner of $v_3$ means $v_3$ follows $v_1$,
+the two ``:FOLLOWS'' besides $v_{m+1}$ indicate that $v_1$ and $v_{m+1}$ follow each other.
+And multiple edges are ubiquitous in property graphs, we support that by store the edge labels in a sequence,
+as is shown in the figure where $v_1$ publishes a social media $v_{m+n}$ and also likes it.
 
-To address this dilemma, a naive approach may allocate buffers in core to store the temporary data and then write these buffers to file.
-\textbf{However, this naive approach is very inefficient for the copy, and most of all,
-these temporary data could even be larger than the size of the main memory
-because real-world graph are skewed and ``celebrities'' may have millions or even billions of followers.}
-Thus, it is desirable to write the image sets direct to disk file.
-For this purpose, \textbf{we propose a space allocation algorithm to allocate space for image sets ahead of time}.
-Specifically, for each vertex in data graph, we store its neighbors together with the vertex and the neighbors are grouped by the vertex label (Section~\ref{sec:data_graph_scanning}).
-For each group, the number of vertices are stored in the data graph file and this number is the upper bound of the corresponding image set, because these vertices are filtered and then write to the image set.
-Based on this observation, we could allocate enough space to store the image sets ahead of time.
-And with the help of \textsc{NeighborIter}, the neighbors are checked sequentially and then write to the proper place in the result file.
-\textbf{The operating system would keep at most \mintinline{text}{num_eqvs} pages to write the image sets,
-and the elements could be written sequentially to each of these pages.}
-\subsection{Join on Compressed Data}\label{sec:join_on_compressed_data}
-Theoretically~\cite{DBLP:journals/pvldb/QiaoZC17}, the join operation is performed as in Algorithm~\ref{alg:join_theory}.
-However, \textbf{there are many challenges have to be conquered to implement it in an out-of-core environment efficiently},
-i.e., How to implement the set intersection operation such that the I/O cost could be minimized?
-How to write the result of the join operation in an sequential manner without frequent random disk access?
-And how to apply the user-provided searching conditions to boost the join operation?
-In this section, we'll answer these problems in detail.
-\begin{algorithm}[ht]
-  \caption{Join algorithm in theory.}\label{alg:join_theory}
-  \SetKwFunction{JoinFun}{\textsc{Join}}
-  \Input{A helve $h$ for an instance of the pattern graph $p$, a sequence of stars $\mathcal{P} = \{p_1, p_2, \dots, p_\lambda\}$ decomposed from $p$,
-    for each star $p_i \in \mathcal{P}$, projections $h_i$ on $p_i$ and conditional code $\operatorname{code}(\mathcal{I}_{p_i} | h_i)$.}
-  \Output{$\operatorname{code}(\mathcal{I}_p|h)$.}
-  \Fn{\JoinFun{$h$, $p$, $\mathcal{P}$, $\{\operatorname{code}(\mathcal{I}_{p_i}|h_i) | i \in [1, \lambda]\}$}}{
-    \ForEach{$u \in V(p)$}{
-      $\operatorname{Img}_p'(u|h) \leftarrow \bigcap_{i \in [1, \lambda] \land u \in V(p_i)}\operatorname{Img}_{p_i}(u|h_i)$\;
-    }
-    $\operatorname{code}(\mathcal{I}_p | h) \leftarrow $ apply the compression algorithm in Section~\ref{sec:vcbc}\;
-    \Return{$\operatorname{code}(\mathcal{I}_p | h)$}\;
-  }
-\end{algorithm}
-\subsubsection{Sequential Set Intersection}\label{sec:sequential_set_intersection}
-The authors of VCBC do not draw much attention on the set intersection operation in Algorithm~\ref{alg:join_theory}
-because they assume that these operations are performed in memory~\cite{DBLP:journals/pvldb/QiaoZC17}.
-Given two image sets $s_1$, $s_2$ with $|s_1| \ge |s_2|$,
-a straightforward approach to compute $s_1 \cap s_2$ is to load these sets into memory and convert $s_1$ into hash table,
-then iterate through $s_2$ and check existence in the hash table $s_1$.
-\textbf{However, as illustrate in Algorithm~\ref{alg:join_theory}, the set intersection operation is the innermost operations in the loop, and it could become the bottleneck if not handled properly.}
-Consider the social media network,
-the trending media could easily attract millions or even billions of viewers,
-to join on such trending media rooted stars,
-billions of viewers have to be loaded into memory and converted into hash table to perform the set intersection,
-which could easily eat up the memory for a PC and have poor locality because of the hash table.
-\textbf{A sequential approach with linear time performance is desirable.}
+By storing the neighbors in our vertex-centric approach,
+all the necessary information are now stored locally together with the vertices,
+and the neighborhood checking process of a property graph matching engine could be accomplished efficiently within a sequential disk scan.
+For the pattern in Figure~\ref{img:celebrity_star}, if we suppose that $v_1$ matches $u_1$ and want to check whether the neighbors of $v_1$ would match $u_2$, we could just scan the neighbors and check the labels sequentially and find that $v_{m+1}$ would match.
+No random disk access appears during the whole process, and there is no need to use complex indices to check the edge labels.
+\subsection{Simple Indices to Reduce I/Os}
+Despite of the fact that the size of the whole data graph could be gigantic,
+we may only care a fraction of the graph by specify the labels in our query for a concrete graph matching problem.
+There are two basic operations for a graph database to solve a graph matching problem:
+1. Given a data vertex, retrieve the neighbors of it with a specific label;
+2. Given a vertex label, retrieve the data vertices with the label.
+In the following paragraphs, we'll show how to make the two operations efficiently by adding a few simple but efficient indices to the vertex-centric storage engine,
+which reduces the searching space and I/O significantly.
 
-To address this challenge, we provide an out-of-core sequential approach.
-Suppose that if both $s_1$ and $s_2$ are sorted, then $s_1 \cap s_2$ could be obtained by a merge operation,
-the elements in $s_1$ and $s_2$ could be scanned sequentially in disk and there is no need to load them entirely into memory and there is no overhead to create the hash table.
-However, $s_1$ and $s_2$ must be sorted ahead of time otherwise the time consuming sorting operation could lead to disaster.
-Now let's check the data graph scanning phase in Section~\ref{sec:data_graph_scanning}.
-The elements in $\operatorname{Img}_{p_i}(u | h_i)$ are in fact written by filtering the \textsc{NeighborIter} sequentially.
-If the \textsc{NeighborIter} visits the vertices in a sorted order, then every $\operatorname{Img}_{p_i}(u | h_i)$ is also sorted consequently.
-In fact, this is a byproduct since our data graph file is elegantly designed such that the vertices are sorted by their Id, so the order always preserves.
-\textbf{Thus we could implement our sequential out-of-core set intersection for free.}
-\subsubsection{Space Allocation \& NeighborInfo Equivalence Classes}\label{sec:space_allocation_eqv}
-As in Section~\ref{sec:space_allocation}, the space allocation problem still occurs during the join phase since the join result is also compressed.
-For $u \in V(p)$, we would write $\operatorname{code}_p(u | h) = \operatorname{code}_{p_1}(u | h_1) \cap \operatorname{code}_{p_2}(u | h_2)$ to the intermediate result file as illustrate in Algorithm~\ref{alg:join_theory}.
-However, the size of $\operatorname{code}_p(u | h)$ is not known until the set intersection operation is done.
-To address this problem and make the out-of-core sequential intersection discussed in the previous subsection doable,
-we estimate the upper bound for $|\operatorname{code}_p(u | h)|$ similar to the approach in Section~\ref{sec:space_allocation}.
-This time, the upper bound is estimated as
-\[ \min{|\operatorname{code}_{p_1}(u | h_1)|, |\operatorname{code}_{p_2}(u | h_2)|}\]
-since the cardinality of interaction could not be greater than the cardinality of the smallest set.
-Thus, the space to store the image sets could be allocated before the set intersection operation,
-and \textbf{the join result could then be written to these specific positions sequentially without random disk access or redundant memory buffer}.
+Consider again the pattern graph in Figure~\ref{img:celebrity_star}, where we only care about the users in the social network,
+no matter how much social media a user have published or viewed we could just ignore all of them in our specific problem.
+A straightforward idea is to group the neighbor vertices with the same label together when storing the vertices.
+However, if the neighbor vertices were stored in the traditional in/out-edge double lists method,
+we have to group them twice and then still face the information insufficient problem as we discussed in the previous subsection.
+As for our vertex-centric storage method,
+the index could be added to the storage engine easily as is shown in Figure~\ref{img:data_neighbors},
+where we simply store the key-value pairs that maps the vertex labels to the starting/ending position of the neighbors on disk.
+Since it is used to locate only the neighbors of a specific vertex, we refer to this kind of index as \emph{local index}.
+With the help of local index, we could skip all the useless neighbor vertices and only scan the necessary ones.
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.48\textwidth]{img/data_neighbors.pdf}
+  \caption{The vertex-centric storage structure of the celebrity $v_1$ in Figure~\ref{img:celebrity_star}.}\label{img:data_neighbors}
+\end{figure}
 
-During the star matching phase, the \textsc{NeighborInfo} equivalence class makes it possible to combine multiple leaves together and store the image set only once, which saves more space and reduces the I/O cost further.
-Now we will show that \textbf{NeighborInfo equivalence classes also exist in the join phase}.
-Consider the two stars $p_1$ and $p_2$ in Figure~\ref{img:stars},
-$u_2$ and $u_3$ belong to the same \textsc{NeighborInfo} equivalence class in both of the stars respectively,
-i.e., for a helve $h$ and its projections $h_1$, $h_2$,
-we have
-\begin{align*}
-  \operatorname{Img}_{p_1}(u_2 | h_1) &= \operatorname{Img}_{p_1}(u_3 | h_1) \\
-  \operatorname{Img}_{p_2}(u_2 | h_2) &= \operatorname{Img}_{p_2}(u_3 | h_2)
-\end{align*}
-Consequently,
-\[\operatorname{Img}_{p_1}(u_2 | h_1) \cap \operatorname{Img}_{p_2}(u_2 | h_2) = \operatorname{Img}_{p_1}(u_3 | h_1) \cap \operatorname{Img}_{p_2}(u_3 | h_2)\]
-which means the equivalence class also hold in the join phase.
-Formally, if $u_1, u_2, \dots, u_k \in V(p_i)$ belong to the same equivalence class $\mathcal{C}_i$ in $p_i$,
-and $u_1, u_2, \dots, u_k \in V(p_j)$ belong to the same equivalence class $\mathcal{C}_j$ in $p_j$,
-then we have
-\[ \operatorname{Img}_{p_i \cup p_j}(\mathcal{C} | h) = \operatorname{Img}_{p_i}(\mathcal{C}_i | h_i) \cap \operatorname{Img}_{p_j}(\mathcal{C}_j | h_j) \]
-where $p = p_i \cup p_j$ is the composition of $p_i$ and $p_j$, i.e.,
-$V(p) = V(p_i) \cup V(p_j)$, $E(p) = E(p_i) \cup E(p_j)$.
-And we could use $\operatorname{Img}_{p_i \cup p_j}(\mathcal{C} | h)$ to represent the image set of $u_1, u_2, \dots, u_k$,
-\textbf{which reduces the I/O cost to write the join results}.
-\subsubsection{Global Constraint Analysis}\label{sec:global_constraint_analysis}
-Constraints can be applied only if enough information could be obtain,
-so we left the global constraints in Section~\ref{sec:filter_on_data_graph}.
-Now in the subsection, we are ready to study the global constraints.
+From a higher perspective, in order to solve a property graph matching problem,
+one need to firstly select a starting vertex in the data graph,
+regardless of the concrete graph matching algorithm whether it is tree based or join based.
+There is no need to scan all the vertices in a billion node data graph if we only care about vertices with the specific labels.
+Just like the local index we discussed above, we could add a global index which contains key-value pairs that maps the labels to the corresponding position on disk (Figure~\ref{img:data_vertices}).
 
-Consider the Cypher query in Figure~\ref{img:cypher_query}, if the WHERE clause is replaced by:
-\begin{minted}{cypher}
-WHERE id(u1) < id(u2) OR id(u4) < id(u2)
-\end{minted}
-Then in this case, we could not simplify it anymore because the two predicates are connected by the ``OR'' operator not the ``AND'', and the De Morgan's law is not helpful.
-This is a global constraint and it cannot be used to filter the vertices during the star matching process.
-Suppose that we want to match the first star $p_1$ in Figure~\ref{img:stars},
-and $v_{10}$ in the data graph is the helve, i.e., $v_{10}$ matches the root $u_1$,
-and we want to check whether the neighbor of $v_{10}$, say $v_{5}$, could match $u_2$ or $u_3$.
-Then the first predicate \mintinline{cypher}{id(u1) < id(u2)} would certainly fail ($10 > 5$) but we cannot simply say that $v_5$ cannot match $u_2$ because the second predicate \mintinline{cypher}{id(u4) < id(u2)} may be true.
-The point here is that we do not have enough information about $u_4$ and we could not use this global constraint to boost the star matching process.
+In summery, for a property graph matching problem, we could quickly jump to the domain of interest with the help of the global index, and then scan and check only the necessary neighbors with the help of our local index.
+After jump to the correct position, all the disk reads are sequential.
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.48\textwidth]{img/data_vertices.pdf}
+  \caption{The storage structure overview of the data graph in Figure~\ref{img:celebrity_star}.}\label{img:data_vertices}
+\end{figure}
+\subsection{Remarks on the Implementation of the Storage Method}
+For applications that need to perform the two basic operations (visiting vertices and visiting the neighbors),
+we define two iterators as the interface to visit the data graph:
+\begin{enumerate}[noitemsep]
+\item \textsc{VertexIter}: Given a vertex label, it iterates through the vertices with the specified label ordered by the ID of vertices;
+\item \textsc{NeighborIter}: Given a data vertex and a label, it visits the neighbors with the label, the neighbors are also sorted by the IDs.
+\end{enumerate}
+In Section~\ref{sec:match} we'll show that the sorting constraint could boost the matching of property graphs.
 
-\textbf{This dilemma could be resolved in the join phase if only we have got enough information.}
-Consider also the case in Figure~\ref{img:stars}, we got the original pattern graph from the two stars after the join process, and $u_1$, $u_4$ is the vertex cover.
-That is to say, a helve $h$ is a vector of two vertices in the data graph that matches $u_1$ and $u_4$ respectively,
-for example, $h = (v_{10}, v_4)$.
-Now, the global constraint \mintinline{cypher}{id(u1) < id(u2) OR id(u4) < id(u2)} is able to filter the image set of $u_2$ since we have already known that $u_1 \mapsto v_{10}$ and $u_4 \mapsto v_4$, only $u_2$ is the free variable.
-Formally, a global constraint $\psi(u_1, u_2, \dots, u_k, u_{k+1})$ is a user defined function on a set of vertices $\{u_1, u_2, \dots, u_k, u_{k+1}\}$.
-If $u_1, u_2, \dots, u_k$ are the roots of the stars, then these vertices are the vertex cover for the new joined graph and the image sets of these vertices form the helve, and $u_{k+1}$ is the only free variable in $\psi$.
-\textbf{So we could use $\psi$ to filter on the image set of $u_{k+1}$,
-which helps reduce the size of the join result and avoid useless mappings in an early phase.}
+These iterators could be implemented efficiently by using our vertex-centric storage model.
+And we also provide a compact disk format implementing the vertex-centric storage model in Figure~\ref{img:data_graph}.
+Vertices are sorted by their IDs, and we store in/out-degrees as early filters when scanning the vertices.
+Edge labels are stored as integers here, however, bitmap could also be used for higher performance.
+The \textsc{VertexIter} just searches the global index and then visits the disk data sequentially;
+The \text{NeighborIter} scans the neighbors with the help of the local index.
 
-However, there are some global constraints that cannot be applied during the join phase,
-for example, the \mintinline{cypher}{id(u2) < id(u3)} we left in Section~\ref{sec:constraint_analysis}.
-As we discussed just before, the constraint have to relate to a vertex cover such that it could be used boost the star matching or join process.
-This constraint is unique because there are no edges between $u_2$ and $u_3$.
-\textbf{From a practical point of view,
-it makes sense to provide extra constraints on connected vertices because these connections have concrete meanings,
-and if a user provide a self defined relationship irrelevant to the topology of the pattern graph, she or he is highly likely to expect it works as deduplicator to remove duplicate results because of the symmetry in the pattern graph},
-and this is the case in our example.
-In fact, as is shown in Figure~\ref{img:pattern_constraint}, there is no difference between $u_2$ and $u_3$ in the pattern graph.
-In the previous subsection we have shown that $u_2$ and $u_3$ share a common image set in the join result,
-so in fact there is no need to apply the \mintinline{cypher}{id(u2) < id(u3)} constraint in the join phase.
-This kind of constraint could just be used during the decomposition process to obtain the final results.
+Please note that the vertex-centric storage model is not restricted to this disk format.
+In fact, as long as a storage engine could implement the two iterators efficiently,
+it could implement the vertex-centric storage model well.
+For example, the sorted vertices could be replaced with B-tree to make the insertion/deletion operation easier for dynamic graphs.
+It is also possible to implement the vertex-centric storage model in memory as buffer cache for existing graph databases to achieve better locality.
+Moreover, we are now working on implementing the vertex-centric storage model on top of relational database to embrace the power of the half-century-year-old mature technology.
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.48\textwidth]{img/data_graph.pdf}
+  \caption{An I/O efficient property graph storage method that can boost the graph matching process.}\label{img:data_graph}
+\end{figure}
