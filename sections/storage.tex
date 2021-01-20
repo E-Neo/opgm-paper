@@ -18,7 +18,7 @@ we would be sure that the huge data graph would be read at most once.
 The property graph matching problem requires the complete connection information between vertices,
 however, the conventional double list storage method break up the completeness and results in random disk accesses.
 
-Consider the patten graph in Figure~\ref{img:celebrity_star}, which simply finds friendship pairs in a data graph.
+Consider the simple patten graph in Figure~\ref{img:celebrity_star}, which simply finds friendship pairs in a data graph.
 If two vertices in the data graph, say $v_i$ and $v_j$, are supposed to match the pattern,
 we must be sure that $v_i$ and $v_j$ follows each other at the same time.
 This kind of neighbor checking is also the most essentially building block of a property graph matching engine.
@@ -34,7 +34,7 @@ And it would be more complicated if there are more than two edges between $u_1$ 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=0.38\textwidth]{img/celebrity_star.pdf}
-  \caption{A celebrity with a huge amount of followers and a pattern graph to find friendship pairs in it.}\label{img:celebrity_star}
+  \caption{Part of a social network data graph where the center $v_1$ is a user, and a simple pattern graph.}\label{img:celebrity_star}
 \end{figure}
 
 The source of the problem is that the in/out-edges are stored separately in the conventional method,
@@ -53,7 +53,7 @@ as is shown in the figure where $v_1$ publishes a social media $v_{m+n}$ and als
 By storing the neighbors in our vertex-centric approach,
 all the necessary information are now stored locally together with the vertices,
 and the neighborhood checking process of a property graph matching engine could be accomplished efficiently within a sequential disk scan.
-For the pattern in Figure~\ref{img:celebrity_star}, if we suppose that $v_1$ matches $u_1$ and want to check whether the neighbors of $v_1$ would match $u_2$, we could just scan the neighbors and check the labels sequentially and find that $v_{m+1}$ would match.
+For the simple pattern in Figure~\ref{img:celebrity_star}, if we suppose that $v_1$ matches $u_1$ and want to check whether the neighbors of $v_1$ would match $u_2$, we could just scan the neighbors and check the labels sequentially and find that $v_{m+1}$ would match.
 No random disk access appears during the whole process, and there is no need to use complex indices to check the edge labels.
 \subsection{Simple Indices to Reduce I/Os}
 Despite of the fact that the size of the whole data graph could be gigantic,
@@ -93,7 +93,7 @@ After jump to the correct position, all the disk reads are sequential.
   \includegraphics[width=0.48\textwidth]{img/data_vertices.pdf}
   \caption{The storage structure overview of the data graph in Figure~\ref{img:celebrity_star}.}\label{img:data_vertices}
 \end{figure}
-\subsection{Remarks on the Implementation of the Storage Method}
+\subsection{Remarks on the Implementation of the Storage Method}\label{sec:storage_iterators}
 For applications that need to perform the two basic operations (visiting vertices and visiting the neighbors),
 we define two iterators as the interface to visit the data graph:
 \begin{enumerate}[noitemsep]
