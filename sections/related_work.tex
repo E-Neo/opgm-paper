@@ -5,7 +5,7 @@ We survey these relevant work in this section.
 \subsection*{In-memory Methods}
 Most of the early work assumes that the data graph and indices are fit in the main memory of a single machine.
 Sparked by Ullmann's backtracking algorithm~\cite{DBLP:journals/jacm/Ullmann76},
-many subgraph matching algorithms have been proposed using different join order, filter rules, and neighborhood indices~\cite{DBLP:journals/pami/CordellaFSV04,DBLP:journals/pvldb/ShangZLY08,DBLP:conf/sigmod/HeS08,DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/LeeHKL12}.
+many subgraph matching algorithms have been proposed using different searching order, filter rules, and neighborhood indices~\cite{DBLP:journals/pami/CordellaFSV04,DBLP:journals/pvldb/ShangZLY08,DBLP:conf/sigmod/HeS08,DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/LeeHKL12}.
 These algorithms usually use a DFS-style tree-based graph exploration to search the matchings without materializing intermediate results.
 However, these single machine in-memory algorithms are no longer suitable for nowadays billion-node graphs.
 

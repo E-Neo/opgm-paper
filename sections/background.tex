@@ -15,14 +15,15 @@ We now provide the formal definition of a property graph.
   \end{enumerate}
 \end{definition}
 A property graph $G$ can be denoted by $(V(G), E(G), \rho_G, \lambda_G)$.
-Please note that the total function $\rho_G$ is necessary, in general,
-we cannot identify an edge simply by the starting and ending vertices such as $(u_1, u_2)$ as can be done in the simple graph model,
+Please note that the total function $\rho_G$ is necessary, unlike the simple graph model that is used in many existing work,
+we cannot identify an edge simply by the starting and ending vertices such as $(u_1, u_2)$,
 because multiple edges may appear between the two vertices.
 \subsection{Property Graph Matching Problem}
 \begin{definition}[Subgraph]
   A property graph $H$ is called a subgraph of a property graph $G$, written $H \subseteq G$, if
   $V(H) \subseteq V(G)$, $E(H) \subseteq E(G)$, $\rho_H$ is a restriction of $\rho_G$, and $\lambda_H$ is a restriction of $\lambda_G$.
 \end{definition}
+Intuitively, a subgraph is a ``smaller'' property graph in the original graph.
 Let $G$ be any property graph, and let $V_H \subseteq V(G)$, then the \emph{induced subgraph} $G[V_H]$ is the graph $H$ whose vertex set is $V_H$ and whose edge set consists of all of the edges in $E(G)$ that have both endpoints in $V_H$.
 \begin{definition}[Property Graph Isomorphism]
   Two property graphs $G$ and $H$ are isomorphic, written $G \cong H$,
@@ -32,15 +33,20 @@ Let $G$ be any property graph, and let $V_H \subseteq V(G)$, then the \emph{indu
   and $\lambda_G(e) = \lambda_H(\phi(e))$ for all $e \in E(G)$;
   Such a pair of mappings is called an isomorphism between $G$ and $H$.
 \end{definition}
+Give a huge data graph and a (much smaller) pattern graph,
+the property graph isomorphism problem is to find all the subgraphs of the data graph that are isomorphic to the pattern.
+Unlike the simple graph model, the property graph isomorphism problem is much more complicated.
+As the vertices and edges are labeled in a property, we need to check not only the topological structure of the graphs,
+but also the labels to determine whether two property graphs are isomorphic.
+And the existence of multi-edges makes it even harder to check the isomorphism.
 \begin{definition}[Property Graph Matching]\label{def:property_graph_matching}
   Given a data property graph $D$, a pattern property graph $P$ and a searching condition $\psi: \mathcal{G} \rightarrow \mathcal{B}$ with $\mathcal{G}$ the set of property graphs and $\mathcal{B}$ the set of Boolean values,
   the property graph matching problem is to report the set $\mathcal{I} = \{H | H \subseteq D, H \cong P, \psi(H) = true\}$.
 \end{definition}
+The property graph matching problem extends the property graph isomorphism problem by introducing the searching conditions (WHERE clause).
 Authors of previous works usually omit the searching condition $\psi$ in their definition of graph matching~\cite{DBLP:conf/sigmod/ShaoCCMYX14,DBLP:journals/pvldb/LaiQLC15,DBLP:conf/sigmod/KimLBHLKJ16,DBLP:journals/pvldb/QiaoZC17}.
 And they adopt a loosely related technique called \emph{symmetry-breaking}~\cite{DBLP:conf/recomb/GrochowK07},
-which ensures there is a unique bijection $\theta: V(P) \rightarrow V(F)$ by providing a partial order on $V(P)$ after exploiting the automorphism of $P$.
-However, as we have stated before, the WHERE clause is a ubiquitous part of the query language of a graph database.
-Users of a real-world graph database usually provide their self-defined searching condition $\psi$ to filter out unnecessary matchings not only symmetry-breaking conditions.
-Thus, the searching condition we defined here can be viewed as a super set of symmetry-breaking.
-We add the searching condition in the definition because it is actually a part of the property graph matching problem,
-and we also found that it can be decomposed and pushed down to lower phase to boost the evaluation of graph matching (Section~\ref{sec:match_optimize}).
+which can be viewed as a special case of WHERE clause by providing a partial order on $V(P)$ after exploiting the automorphism of $P$.
+However, as the WHERE clause is a necessary part of a graph query language,
+users of a real-world graph database usually provide their self-defined searching condition $\psi$ to filter out unnecessary matchings not only symmetry-breaking conditions.
+And we also found that it can be decomposed and pushed down to lower phase to boost the evaluation of graph matching (Section~\ref{sec:match_optimize}).
