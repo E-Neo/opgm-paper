@@ -1,6 +1,5 @@
 \section{Background}\label{sec:background}
-A \emph{property graph} is a directed graph with labelled vertices and edges.
-It may also have self-loop which is an edge connecting to a same vertex.
+A \emph{property graph} is a directed graph with labelled vertices and edges. It may also have self-loops i.e. edges connecting back to their source vertices.
 
 \begin{definition}[Property Graph~\cite{DBLP:journals/csur/AnglesABHRV17}]
   A property graph $G$ is a tuple $(V, E, \rho, \lambda, \sigma)$, where:
@@ -21,22 +20,24 @@ Note that the total function $\rho_G$ is necessary because of the self-loops.
   A property graph $H$ is called a subgraph of a property graph $G$, denoted as $H \subseteq G$, if
   $V(H) \subseteq V(G)$, $E(H) \subseteq E(G)$, $\rho_H$ is a restriction of $\rho_G$, and $\lambda_H$ is a restriction of $\lambda_G$.
 \end{definition}
-Intuitively, a subgraph is a ``smaller'' property graph in the original graph.
-Let $G$ be any property graph, and let $V_H \subseteq V(G)$, then the \emph{induced subgraph} $G[V_H]$ is the graph $H$ whose vertex set is $V_H$ and whose edge set consists of all of the edges in $E(G)$ that have both endpoints in $V_H$.
+Note that the restriction means the sub-graph $H$ must contain all edges in $G$ connecting all vertices in $H$.
+
+%Intuitively, a subgraph is a ``smaller'' property graph in the original graph.
+%Let $G$ be any property graph, and let $V_H \subseteq V(G)$, then the \emph{induced subgraph} $G[V_H]$ is the graph $H$ whose vertex set is $V_H$ and whose edge set consists of all of the edges in $E(G)$ that have both endpoints in $V_H$.
 \begin{definition}[Property Graph Isomorphism]
-  Two property graphs $G$ and $H$ are isomorphic, written $G \cong H$,
+  Two property graphs $G$ and $H$ are isomorphic, denoted as $G \cong H$,
   if there exists bijections $\theta: V(G) \rightarrow V(H)$ and $\phi: E(G) \rightarrow E(H)$ such that
   $\rho_G(e) = (u, v)$ if and only if $\rho_H(\phi(e)) = (\theta(u), \theta(v))$,
   $\lambda_G(v) = \lambda_H(\theta(v))$ for all $v \in V(G)$
   and $\lambda_G(e) = \lambda_H(\phi(e))$ for all $e \in E(G)$;
   Such a pair of mappings is called an isomorphism between $G$ and $H$.
 \end{definition}
-Give a huge data graph and a (much smaller) pattern graph,
-the property graph isomorphism problem is to find all the subgraphs of the data graph that are isomorphic to the pattern.
+Given a large graph and a (much smaller) pattern graph,
+the property graph isomorphism problem is to find all subgraphs of the large graph that are isomorphic to the pattern graph.
 Unlike the simple graph model, the property graph isomorphism problem is much more complicated.
-As the vertices and edges are labeled in a property, we need to check not only the topological structure of the graphs,
+As the vertices and edges are labeled in a property graph, we need to check not only the topological structure,
 but also the labels to determine whether two property graphs are isomorphic.
-And the existence of multi-edges makes it even harder to check the isomorphism.
+And the existence of multi-edge connecting two vertices makes it even harder to check the isomorphism.
 \begin{definition}[Property Graph Matching]\label{def:property_graph_matching}
   Given a data property graph $D$, a pattern property graph $P$ and a searching condition $\psi: \mathcal{G} \rightarrow \mathcal{B}$ with $\mathcal{G}$ the set of property graphs and $\mathcal{B}$ the set of Boolean values,
   the property graph matching problem is to report the set $\mathcal{I} = \{H | H \subseteq D, H \cong P, \psi(H) = true\}$.
