@@ -1,14 +1,13 @@
 \section{Introduction}
 Graph matching is one of the most important applications of graph databases.
-It is widely used in many different fields,
+It is widely used in many fields,
 such as Twitter's recommendation systems~\cite{DBLP:journals/pvldb/GuptaSGGZLL14,DBLP:journals/pvldb/SharmaJBLL16},
 electronic computer-aided design~\cite{DBLP:conf/dac/OhlrichEGS93},
 and protein-protein interaction (PPI) networks~\cite{milenkovic2008uncovering}.
-Nowadays, users of an industrial graph database such as Neo4j\footnote{\url{https://neo4j.com}}
-can easily model and manipulate their data as property graphs and expressing their queries via the Cypher~\cite{DBLP:conf/sigmod/FrancisGGLLMPRS18} query language.
-Although it's convenient, the matching process of these industrial graph databases are notoriously time and resource consuming.
-As a result, many novel subgraph matching algorithms have been proposed~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:conf/sigmod/HanLL13,DBLP:conf/sigmod/ShaoCCMYX14,DBLP:conf/cloud/SerafiniMS17,DBLP:journals/pvldb/QiaoZC17,DBLP:conf/sigmod/DiasTGM019},
-which usually claim an order or even orders of magnitude of speedup.
-However, there are still two gaps that hinder these algorithms from being widely adopted in the real-world scenarios:
-the first is the gap between the complexity of real-world queries and the simplicity of graphs that the existing algorithms can handle;
-while the second gap is the huge memory and high-quality network requirements for the existing algorithms to query on large graphs and the limitation of resource budget.
+Nowadays, users of industrial graph databases such as Neo4j\footnote{\url{https://neo4j.com}}
+can easily model data as property graphs and expressing their queries via the Cypher~\cite{DBLP:conf/sigmod/FrancisGGLLMPRS18} query language.
+Although it's convenient, the matching process of these industrial graph databases are time and resource consuming.
+Many novel subgraph matching algorithms have been proposed~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:conf/sigmod/HanLL13,DBLP:conf/sigmod/ShaoCCMYX14,DBLP:conf/cloud/SerafiniMS17,DBLP:journals/pvldb/QiaoZC17,DBLP:conf/sigmod/DiasTGM019}, with even orders of magnitude of speedup compared to the industrial graph databases. 
+However, there are two gaps that hinder these algorithms from being widely adopted in the real-world scenarios:
+(1) the gap between the complexity of real-world queries and the simplicity of graphs that the existing algorithms can handle;
+(2) the huge memory and high-speed network requirements for the existing algorithms to query on large graphs and the limitation of resource budget.
