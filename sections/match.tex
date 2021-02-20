@@ -167,9 +167,9 @@ And the Boolean operator AND ($\land$), OR ($\lor$), NOT ($\lnot$) can be used t
 For example, in Figure~\ref{img:cypher_query}, there are three predicates concatenated by AND\@.
 Formally, the constraint is a function $\psi: PG \rightarrow B$ with $PG$ the set of pattern graph and $B$ the set of Boolean values.
 We will also use $\psi$ to denote abstract predicate for simplicity in this section:
-$\psi(u)$ defines a constraint $\psi$ on vertex $u$, e.g., ``\mintinline{cypher}{id(u4) >= 2020}'' defines a vertex constraint on $u_4$ where the ID of the matching vertex of $u_4$ must great than or equal to $2020$;
+$\psi(u)$ defines a constraint $\psi$ on vertex $u$, e.g., ``{id(u4) >= 2020}'' defines a vertex constraint on $u_4$ where the ID of the matching vertex of $u_4$ must great than or equal to $2020$;
 and $\psi(u_1, u_2)$ defines a constraint on vertex $u_1$ and vertex $u_2$,
-e.g., ``\mintinline{cypher}{id(u1) < id(u2)}'' defines a constraint on $u_1$ and $u_2$ that the ID of the matching of $u_1$ must be less than that of $u_2$.
+e.g., ``{id(u1) < id(u2)}'' defines a constraint on $u_1$ and $u_2$ that the ID of the matching of $u_1$ must be less than that of $u_2$.
 
 Previous work usually ignore the constraint specification part of a graph matching query.
 If someone wants to query a pattern with a specific searching condition,
@@ -195,9 +195,9 @@ we dive into the syntax tree of the graph matching query and decompose the searc
 Specifically, we decompose the searching condition into three parts: \emph{vertex constraints}, \emph{edge constraints} and \emph{global constraint}.
 A vertex constraint is a function $\psi(u)$ mapping vertex $u$ to Boolean values,
 and an edge constraint sets a constraint on edge $(u_1, u_2)$ by a function $\psi(u_1, u_2)$.
-For example, in Figure~\ref{img:pattern_graph} ``\mintinline{cypher}{id(u4) < 2020}'' sets a vertex constraint on $u_4$,
-``\mintinline{cypher}{id(u1) < id(u2)}'' and ``\mintinline{cypher}{id(u1) < id(u3)}'' are edge constraints,
-while ``\mintinline{cypher}{id(u2) < id(u3)}'' is not because there is no edge between $u_2$ and $u_3$.
+For example, in Figure~\ref{img:pattern_graph} ``{id(u4) < 2020}'' sets a vertex constraint on $u_4$,
+``{id(u1) < id(u2)}'' and ``{id(u1) < id(u3)}'' are edge constraints,
+while ``{id(u2) < id(u3)}'' is not because there is no edge between $u_2$ and $u_3$.
 The \emph{vertex constraints} and \emph{edge constraints} are \emph{local constraints} that only require local information that can be obtained during the graph matching phase.
 So they could then be pushed down to the data graph scanning phase to short-circuit useless matching results.
 A global constraint $\psi(u_1, u_2, \dots)$ sets a constraint on a series of vertices $u_1, u_2, \dots$,
@@ -227,7 +227,7 @@ so we could safely split $\psi$ into $\psi_1$ and $\psi_2$.
 Because local constraints are the earliest constraint filters, we should extract as much as possible.
 In order to make the constraint filters more efficient and extract more local constraints:
 Firstly, we optimize the AST by classic methods such as compile-time calculation,
-handle special cases such as ``\mintinline{cypher}{WHERE false}''.
+handle special cases such as ``{WHERE false}''.
 Then, we apply Algorithm~\ref{alg:rewrite} to analyze the syntax tree and rewrite it into \emph{normal form},
 where a normal form is a list of simplified constraints connected by the AND operator.
 In fact, the constraints are mostly specified by binary operators such as ``$\le$'', ``$\ne$'',
@@ -238,15 +238,15 @@ And the De Morgan's law enables us to convert the OR ($\lor$) operator into AND 
 \end{equation}
 So Algorithm~\ref{alg:rewrite} will always keep the semantics of the original user provided constraint.
 For example, the third predicate of the AND operator in Figure~\ref{img:cypher_query} would be rewritten to
-\begin{minted}[fontsize=\scriptsize]{cypher}
+\begin{verbatim}
   id(u2) < id(u3) AND id(u4) < 2020
-\end{minted}
+\end{verbatim}
 by applying De Morgan's law.
 And the WHERE clause of Figure~\ref{img:cypher_query} would be rewritten to the normal form:
-\begin{minted}[fontsize=\scriptsize]{lisp}
+\begin{verbatim}
   WHERE id(u1) < id(u2) AND id(u1) < id(u3)
   AND id(u2) < id(u3) AND id(u4) < 2020
-\end{minted}
+\end{verbatim}
 
 \begin{algorithm}[ht]
   \caption{Constraint Pushdown}\label{alg:push_down}

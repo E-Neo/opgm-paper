@@ -74,12 +74,12 @@ which reduces the intermediate results in an early stage.
 Our experiment shows that, we could save $???\%$ of the space if the WHERE clause is handled properly,
 and the overall performance is $???\times$ better then the naive approach.
 \begin{figure}[ht]
-  \begin{minted}[fontsize=\scriptsize]{cypher}
+  \begin{verbatim}
     MATCH (u1:Person)-[:FOLLOWS]->(u2:Person)-[:FOLLOWS]->(u1),
           (u1)-[:FOLLOWS]->(u3:Person)-[:FOLLOWS]->(u1),
           (u1)-[:PUBLISHES]->(u4:Media), (u1)-[:LIKES]->(u4),
           (u2)-[:LIKES]->(u4)<-[:LIKES]-(u3)
     WHERE u1 < u2 AND u1 < u3 AND NOT (u2 >= u3 OR u4 >= 2020)
-  \end{minted}
+  \end{verbatim}
   \caption{Graph matching query of the pattern graph in Figure~\ref{img:pattern_graph}.}\label{img:cypher_query}
 \end{figure}
