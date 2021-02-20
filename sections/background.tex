@@ -1,23 +1,20 @@
 \section{Background}\label{sec:background}
-\subsection{Property Graph Model}
-A \emph{property graph} is a directed vertex-labeled edge-labeled multigraph with self-edges.
-We now provide the formal definition of a property graph.
+A \emph{property graph} is a directed graph with labelled vertices and edges. It may also have self-edges with edges connecting to a same vertex. 
+
 \begin{definition}[Property Graph~\cite{DBLP:journals/csur/AnglesABHRV17}]
   A property graph $G$ is a tuple $(V, E, \rho, \lambda, \sigma)$, where:
   \begin{enumerate}[noitemsep,label={(\arabic*)}]
   \item $V$ is a finite set of vertices.
-  \item $E$ is a finite set of edges such that $V$ and $E$ have no elements in common.
+  \item $E$ is a finite set of edges.
   \item $\rho: E \rightarrow (V \times V)$ is a total function.
     Intuitively, $\rho(e) = (v_1, v_2)$ indicates that $e$ is a directed edge from $v_1$ to $v_2$.
   \item $\lambda :(V \cup E) \rightarrow L$ is a total function where $L$ is a set of labels.
     Intuitively, if $v \in V, \rho(v) = l$ (respectively, $e \in E, \rho(e) = l$),
-    then $l$ is the label of vertex $v$ (respectively, edge $e$).
+    $l$ is the label of vertex $v$ (respectively, edge $e$).
   \end{enumerate}
 \end{definition}
-A property graph $G$ can be denoted by $(V(G), E(G), \rho_G, \lambda_G)$.
-Please note that the total function $\rho_G$ is necessary, unlike the simple graph model that is used in many existing work,
-we cannot identify an edge simply by the starting and ending vertices such as $(u_1, u_2)$,
-because multiple edges may appear between the two vertices.
+A property graph $G$ is denoted as $(V(G), E(G), \rho_G, \lambda_G)$.
+Please note that the total function $\rho_G$ is necessary because of the self-edges.
 \subsection{Property Graph Matching Problem}
 \begin{definition}[Subgraph]
   A property graph $H$ is called a subgraph of a property graph $G$, written $H \subseteq G$, if
