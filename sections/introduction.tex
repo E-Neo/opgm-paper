@@ -12,15 +12,14 @@ However, there are two gaps that hinder these algorithms from being widely adopt
 (1) the gap between the complexity of real-world queries and the simplicity of graphs that the existing algorithms can handle;
 (2) the huge memory and high-speed network requirements for the existing algorithms to query on large graphs and the limitation of resource budget.
 
-As for the first gap, the property graph is the de facto graph model for real-world graph matching problems.
-A property graph is directed, (with both vertices and edges) labeled, and may have multi-edges (two vertices may be connected by multiple edges).
-Moreover, users usually provide extra searching conditions via the WHERE clause~\cite{DBLP:journals/csur/AnglesABHRV17}.
-However, current studies focus on the simple graph model by ignoring the directions, labels, or multi-edges,
-and the WHERE clause is not considered~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:conf/sigmod/HanLL13,DBLP:conf/sigmod/KimLBHLKJ16,DBLP:journals/pvldb/QiaoZC17,DBLP:journals/pvldb/MhedhbiS19}.
-This limitation is not only a matter of engineering,
-but also a serious algorithm problem:
-(1) the storage engine designed for simple graph may encounter superfluous random disk reads when matching a property graph;
-(2) the optimizations aimed at simple graph usually rely heavily on the equivalence of vertices~\cite{DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/QiaoZC17}, which is harder to find in a property graph because of the complexity of directions and labels.
+The property graph is the de facto graph model for real-world graph matching problems.
+A property graph is a directed graph with labels attached to vertices and edges. There may be multiple edges connecting two vertices and edges for self-loop. 
+Moreover, users usually provide extra searching conditions via the WHERE clause~\cite{DBLP:journals/csur/AnglesABHRV17}. However,  current studies mostly deal with simple graph models such as ignoring the directions, labels, or multi-edges.WHERE clause is not considered either~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:conf/sigmod/HanLL13,DBLP:conf/sigmod/KimLBHLKJ16,DBLP:journals/pvldb/QiaoZC17,DBLP:journals/pvldb/MhedhbiS19}. The optimizations aimed at simple graphs usually heavily rely on the equivalence of vertices~\cite{DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/QiaoZC17}, which is harder to find in a property graph because of the complexity of directions and labels. Moreover, in the implementation level, the storage engine designed for simple graph models encounters excessive random disk seeks when matching a real-world property graph.
+
+%This limitation is not only a matter of engineering,
+%but also a serious algorithm problem:
+%(1) the storage engine designed for simple graph may encounter superfluous random disk reads when matching a property graph;
+%(2) the optimizations aimed at simple graph usually rely heavily on the equivalence of vertices~\cite{DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/QiaoZC17}, which is harder to find in a property graph because of the complexity of directions and labels.
 
 For the second gap, keeping all the data in memory is extremely uneconomic for property graph matching problem.
 (1) The memory needs to hold not only the data graph, but also the intermediate result which grows exponentially with respect to the size of the data graph, as our experiment shows that a graph with $6.9 \times 10^{7}$ edges could generate $1.7 \times 10^{13}$ rows of matching results.
