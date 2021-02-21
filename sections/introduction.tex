@@ -40,7 +40,7 @@ and challenges lie in these two parts.
 To handle the real-world property graph efficiently, we propose the \emph{vertex-centric storage model}.
 This can eliminate the random access problem in CSC and CSR which store in/out-edges separately.
 
-To reduce memory usage, we make the following contributions in SeqStar's graph matching engine:
+To reduce memory usage, we make the following contributions:
 (1) a novel star decomposition algorithm that keeps all the useful filtering information on stars,
 (2) a novel compression algorithm for stars' matching results by postponing Cartesian production and digging equivalence classes,
 (3) an efficient and scalable pipeline join algorithm that is able to process the compressed data directly.
