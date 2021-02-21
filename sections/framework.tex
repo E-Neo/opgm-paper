@@ -23,6 +23,15 @@ Based on the analysis result and the statistical information of the data graph,
 the planner selects a connected vertex cover ($u_1, u_4$) in the pattern as the roots of stars.
 The star generating algorithm keeps all the relevant edges and additional searching conditions in order to filter out unnecessary matchings as early as possible (\S\ref{sec:match_star}).
 
+With the help of SeqStar's vertex-centric storage engine,
+all the stars could be matched by scanning the data graph sequentially only once (\S\ref{sec:storage}).
+We compress the matching results by digging equivalence classes and postponing the Cartesian product in stars (\S\ref{sec:match_compress}).
+In the decomposed stars, both $u_2$ and $u_3$ are labeled ``User'', and the have the same connections to the root $u_1$ or $u_4$.
+We say $u_2$ and $u_3$ belong to the same \emph{neighbor equivalence class} and their matching images could be stored only once.
+Moreover, suppose $v_1$ in the data graph would match $u_1$, then there is no need to blindly enumerate the neighbors of $v_1$ to check the matching of $u_2$, $u_3$ and $u_4$,
+because we could always restore the matchings by Cartesian product on the image sets of $u_2$, $u_3$ and $u_4$.
+
+In order to obtain the final results of the query, (TODO pipeline join).
 \begin{figure}[ht]
   \begin{Verbatim}[fontsize=\small]
     MATCH (u1:Person)-[:FOLLOWS]->(u2:Person)-[:FOLLOWS]->(u1),
