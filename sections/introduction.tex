@@ -28,7 +28,7 @@ Existing systems~\cite{DBLP:conf/sosp/TeixeiraFSSZA15,DBLP:conf/sigmod/DiasTGM01
 %(2) For distributed approaches, on the one hand it is hard to partition the graph across cluster machines to minimize the communication cost~\cite{DBLP:journals/im/LeskovecLDM09} and have performance problems~\cite{DBLP:conf/sigmod/KimLBHLKJ16},
 %one the other hand it is inconvenient and costly for the end user to maintain the cluster nodes~\cite{DBLP:conf/osdi/KyrolaBG12}.
 
-Therefore, we introduce SeqStar in this paper, a high performance out-of-core property graph matching system for real-world graphs, which scans the disk sequentially by matching stars (a star contains a root with the neighbors of the root).
+Therefore, we introduce SeqStar in this paper, a high performance out-of-core property graph matching system for real-world graphs, which scans the disk sequentially by matching stars (a star contains a root vertex and some leaves which are the neighbors of the root).
 
 %Therefore, in order to match up with the need of real-world problems,a high performance disk-based property graph matching system is desirable.
 
@@ -60,6 +60,13 @@ frequent subgraphs, multi-hop edges, or cliques as their matching unit~\cite{DBL
 these algorithms rely on super-linear indices~\cite{DBLP:journals/pvldb/SunWWSL12}.
 To address this challenge, we make a balance by choosing stars as our basic unit.
 Moreover, our star decomposition algorithm is enhanced such that the stars keep as much filtering information as possible.
-Our experiment show that this enhancement could reduce the intermediate results by up to $43\%$ of the existing works.
+Our experiment shows that this enhancement could reduce the intermediate results by up to $43\%$ of the existing works.
+
+However, the stars' matching results could still be very large because the matching results grow exponentially with respect to the data graph,
+e.g., a 129M graph could easily eat up hundreds or even thousands GB of memory to store the intermediate results.
+Inspired by VCBC~\cite{DBLP:journals/pvldb/QiaoZC17}, we develop a novel compression algorithm for star' matching result by postponing the costly Cartesian product and digging the equivalence classes in the leaves of the star.
+The compression ratio is quite impressive, as high as $10^8$,
+and we find that the size of the compressed star's matching results takes less than $23\%$ the space to store the graph,
+which can even fit into the main memory of a laptop.
 
 TODO
