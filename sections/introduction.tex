@@ -1,5 +1,5 @@
 \section{Introduction}
-Graph matching is one of the most important applications of graph databases.
+Graph matching~\footnote{There are two kinds of graphs in a graph matching problem: one is the large \emph{data graph}, the other is the much smaller \emph{pattern graph}} is one of the most important applications of graph databases.
 It is widely used in many fields,
 such as Twitter's recommendation systems~\cite{DBLP:journals/pvldb/GuptaSGGZLL14,DBLP:journals/pvldb/SharmaJBLL16},
 electronic computer-aided design~\cite{DBLP:conf/dac/OhlrichEGS93},
@@ -32,15 +32,24 @@ Therefore, we introduce SeqStar in this paper, a high performance out-of-core pr
 
 %Therefore, in order to match up with the need of real-world problems,a high performance disk-based property graph matching system is desirable.
 
-\subsection*{Challenges \& Contributions}
-There are two fundamental components of a property graph matching system:
+\subsection*{Contributions}
+Like other systems, there are two fundamental components in SeqStar:
 the graph storage engine and the graph matching engine,
 and challenges lie in these two parts.
 
-The conventional graph storage method is the compressed sparse column (CSC) and the compressed sparse row (CSR) format~\cite{DBLP:conf/osdi/KyrolaBG12},
-which stores the in/out-edges separately for each vertex.
-However, because of the multi-edges in property graphs, the in/out-edges have to be searched many times to check the matching of a vertex, and result in excessive random disk seeks.
-To address this challenge, we propose the \emph{vertex-centric storage model} that stores all the necessary information together with the vertices, such that the vertices could be matched in a single sequential scan.
+To handle the real-world property graph efficiently, we propose the \emph{vertex-centric storage model}.
+This can eliminate the random access problem in CSC and CSR which store in/out-edges separately.
+
+To reduce memory usage, we make the following contributions in SeqStar's graph matching engine:
+(1) a novel star decomposition algorithm that keeps all the useful filtering information on stars,
+(2) a novel compression algorithm for stars' matching results by postponing Cartesian production and digging equivalence classes,
+(3) an efficient and scalable pipeline join algorithm that is able to process the compressed data directly.
+
+Moreover, to the best of our knowledge, we are the first one to integrate the optimization of WHERE clauses in the graph matching algorithm, by pushing the predicates down to the star matching process.
+%% The conventional graph storage method is the compressed sparse column (CSC) and the compressed sparse row (CSR) format~\cite{DBLP:conf/osdi/KyrolaBG12},
+%% which stores the in/out-edges separately for each vertex.
+%% However, because of the multi-edges in property graphs, the in/out-edges have to be searched many times to check the matching of a vertex, and result in excessive random disk seeks.
+%% To address this challenge, we propose the \emph{vertex-centric storage model} that stores all the necessary information together with the vertices, such that the vertices could be matched in a single sequential scan.
 
 %% Generally speaking, there are two kinds of graph isomorphism algorithm,
 %% differing on whether intermediate results are materialized.
@@ -53,20 +62,18 @@ To address this challenge, we propose the \emph{vertex-centric storage model} th
 %% enormous amount of random disk accesses would be encountered for an out-of-core tree-searching approach.
 %% Based on this observation, this paper designs a join-based property graph matching algorithm.
 
-The most fundamental problem of a graph matching algorithm is to determine the basic matching unit.
-Edges are the simplest matching units, however, intermediate results much larger than the data graph would be generated and result in costly join operations.
-To avoid excessive joins, authors use more complex structures i.e.,
-frequent subgraphs, multi-hop edges, or cliques as their matching unit~\cite{DBLP:conf/sigmod/HeS08,DBLP:conf/edbt/ZhangLY09,DBLP:journals/pvldb/QiaoZC17}, however,
-these algorithms rely on super-linear indices~\cite{DBLP:journals/pvldb/SunWWSL12}.
-To address this challenge, we make a balance by choosing stars as our basic unit.
-Moreover, our star decomposition algorithm is enhanced such that the stars keep as much filtering information as possible.
-Our experiment shows that this enhancement could reduce the intermediate results by up to $43\%$ of the existing works.
+%% The most fundamental problem of a graph matching algorithm is to determine the basic matching unit.
+%% Edges are the simplest matching units, however, intermediate results much larger than the data graph would be generated and result in costly join operations.
+%% To avoid excessive joins, authors use more complex structures i.e.,
+%% frequent subgraphs, multi-hop edges, or cliques as their matching unit~\cite{DBLP:conf/sigmod/HeS08,DBLP:conf/edbt/ZhangLY09,DBLP:journals/pvldb/QiaoZC17}, however,
+%% these algorithms rely on super-linear indices~\cite{DBLP:journals/pvldb/SunWWSL12}.
+%% To address this challenge, we make a balance by choosing stars as our basic unit.
+%% And our star decomposition algorithm is enhanced such that the stars keep as much filtering information as possible.
+%% Our experiment shows that this enhancement could reduce the intermediate results by up to $43\%$ of the existing works.
 
-However, the stars' matching results could still be very large because the matching results grow exponentially with respect to the data graph,
-e.g., a 129M graph could easily eat up hundreds or even thousands GB of memory to store the intermediate results.
-Inspired by VCBC~\cite{DBLP:journals/pvldb/QiaoZC17}, we develop a novel compression algorithm for star' matching result by postponing the costly Cartesian product and digging the equivalence classes in the leaves of the star.
-The compression ratio is quite impressive, as high as $10^8$,
-and we find that the size of the compressed star's matching results takes less than $23\%$ the space to store the graph,
-which can even fit into the main memory of a laptop.
-
-TODO
+%% However, the stars' matching results could still be very large because the matching results grow exponentially with respect to the data graph,
+%% e.g., a 129M graph could easily eat up hundreds or even thousands GB of memory to store the intermediate results.
+%% Inspired by VCBC~\cite{DBLP:journals/pvldb/QiaoZC17}, we develop a novel compression algorithm for star' matching result by postponing the costly Cartesian product and digging the equivalence classes in the leaves of the star.
+%% The compression ratio is quite impressive, as high as $10^8$,
+%% and we find that the size of the compressed star's matching results takes less than $23\%$ the space to store the graph,
+%% which can even fit into the main memory of a laptop.

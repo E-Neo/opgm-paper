@@ -4,18 +4,26 @@
   \includegraphics[width=0.48\textwidth]{img/architecture.pdf}
   \caption{The workflow of SeqStar.}\label{img:architecture}
 \end{figure}
-Figure~\ref{img:architecture} shows the workflow of SeqStar,
-and Figure~\ref{img:pattern_graph} shows a popular diamond pattern in the field of recommendation system~\cite{DBLP:journals/pvldb/GuptaSGGZLL14,DBLP:journals/pvldb/SharmaJBLL16}.
+Figure~\ref{img:architecture} shows the workflow of SeqStar.
 Because of the complexity of the real-world property graphs,
 the conventional in/out-edges storage method is not suitable and would incur many unnecessary random disk accesses,
-and in Section~\ref{sec:storage}, we develop a vertex-centric property graph storage model to address the problem.
-Based on the storage model, in Section~\ref{sec:match},
-we propose a property graph matching engine that is able to solve real-world problems by leveraging the economical disk:
+and we develop a vertex-centric property graph storage model to address the problem (\S\ref{sec:storage}).
+Based on the storage model,
+we propose an efficient property graph matching engine that is able to solve real-world problems even on a laptop (\S\ref{sec:match}).
 The core of the engine is the planner, which avoids random disk accesses by decomposing the pattern into a series of stars.
 Compared with existing works, we take steps further by introducing
 (1) a matching result compression algorithm which reduces the cost of materializing intermediate results,
 (2) a predicate pushdown optimizer that is able to filter out unnecessary matchings in an early stage and reduce the burden of the join process.
-We now describe SeqStar in more detail:
+\begin{figure}[ht]
+  \begin{Verbatim}[fontsize=\small]
+    MATCH (u1:Person)-[:FOLLOWS]->(u2:Person)-[:FOLLOWS]->(u1),
+          (u1)-[:FOLLOWS]->(u3:Person)-[:FOLLOWS]->(u1),
+          (u1)-[:PUBLISHES]->(u4:Media), (u1)-[:LIKES]->(u4),
+          (u2)-[:LIKES]->(u4)<-[:LIKES]-(u3)
+    WHERE u1 < u2 AND u1 < u3 AND NOT (u2 >= u3 OR u4 >= 2020)
+  \end{Verbatim}
+  \caption{Graph matching query of the pattern graph in Figure~\ref{img:pattern_graph}.}\label{img:cypher_query}
+\end{figure}
 \begin{figure}[ht]
   \centering
   \includegraphics[width=0.48\textwidth]{img/pattern_graph.pdf}
@@ -72,13 +80,3 @@ To address this problem, in Section~\ref{sec:match_optimize}, we propose a novel
 and reduces the intermediate results further.
 Our experiment shows that, we could save $???\%$ of the space if the WHERE clause is handled properly,
 and the overall performance is $???\times$ better then the naive approach.
-\begin{figure}[ht]
-  \begin{verbatim}
-    MATCH (u1:Person)-[:FOLLOWS]->(u2:Person)-[:FOLLOWS]->(u1),
-          (u1)-[:FOLLOWS]->(u3:Person)-[:FOLLOWS]->(u1),
-          (u1)-[:PUBLISHES]->(u4:Media), (u1)-[:LIKES]->(u4),
-          (u2)-[:LIKES]->(u4)<-[:LIKES]-(u3)
-    WHERE u1 < u2 AND u1 < u3 AND NOT (u2 >= u3 OR u4 >= 2020)
-  \end{verbatim}
-  \caption{Graph matching query of the pattern graph in Figure~\ref{img:pattern_graph}.}\label{img:cypher_query}
-\end{figure}
