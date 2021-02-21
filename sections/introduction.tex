@@ -13,8 +13,9 @@ However, there are two gaps that hinder these algorithms from being widely adopt
 (2) the huge memory and high-speed network requirements for the existing algorithms to query on large graphs and the limitation of resource budget.
 
 The property graph is the de facto graph model for real-world graph matching problems.
-A property graph is a directed graph with labels attached to vertices and edges. There may be multiple edges connecting two vertices and edges for self-loop. 
-Moreover, users usually provide extra searching conditions via the WHERE clause~\cite{DBLP:journals/csur/AnglesABHRV17}. However,  current studies mostly deal with simple graph models such as ignoring the directions, labels, or multi-edges.WHERE clause is not considered either~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:conf/sigmod/HanLL13,DBLP:conf/sigmod/KimLBHLKJ16,DBLP:journals/pvldb/QiaoZC17,DBLP:journals/pvldb/MhedhbiS19}. The optimizations aimed at simple graphs usually heavily rely on the equivalence of vertices~\cite{DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/QiaoZC17}, which is harder to find in a property graph because of the complexity of directions and labels. Moreover, in the implementation level, the storage engine designed for simple graph models encounters excessive random disk seeks when matching a real-world property graph.
+A property graph is a directed graph with labels attached to vertices and edges.
+There may be multiple edges connecting two vertices and edges for self-loop.
+Moreover, users usually provide extra searching conditions via the WHERE clause~\cite{DBLP:journals/csur/AnglesABHRV17}. However,  current studies mostly deal with simple graph models such as ignoring the directions, labels, or multi-edges. WHERE clause is not considered either~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:conf/sigmod/HanLL13,DBLP:conf/sigmod/KimLBHLKJ16,DBLP:journals/pvldb/QiaoZC17,DBLP:journals/pvldb/MhedhbiS19}. The optimizations aimed at simple graphs usually heavily rely on the equivalence of vertices~\cite{DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/QiaoZC17}, which is harder to find in a property graph because of the complexity of directions and labels. Moreover, in the implementation level, the storage engine designed for simple graph models encounters excessive random disk seeks when matching a real-world property graph.
 
 %This limitation is not only a matter of engineering,
 %but also a serious algorithm problem:
@@ -23,7 +24,7 @@ Moreover, users usually provide extra searching conditions via the WHERE clause~
 
 Existing algorithms rely on main memory for their computation. It is extremely uneconomic for property graph matching problem. The memory needs to hold not only the graph data but also the intermediate results which grow exponentially with respect to the size of graph data. Our experiment shows that a graph with $6.9 \times 10^{7}$ edges could generate $1.7 \times 10^{13}$ rows of matching results.
 %(1) The memory needs to hold not only the data graph, but also the intermediate result which grows exponentially with respect to the size of the data graph, as our experiment shows that a graph with $6.9 \times 10^{7}$ edges could generate $1.7 \times 10^{13}$ rows of matching results.
-Existing systems~\cite{DBLP:conf/sosp/TeixeiraFSSZA15,DBLP:conf/sigmod/DiasTGM019,DBLP:journals/pvldb/MhedhbiS19} require hundreds of GB of memory to process such graphs. 
+Existing systems~\cite{DBLP:conf/sosp/TeixeiraFSSZA15,DBLP:conf/sigmod/DiasTGM019,DBLP:journals/pvldb/MhedhbiS19} require hundreds of GB of memory to process such graphs.
 %(2) For distributed approaches, on the one hand it is hard to partition the graph across cluster machines to minimize the communication cost~\cite{DBLP:journals/im/LeskovecLDM09} and have performance problems~\cite{DBLP:conf/sigmod/KimLBHLKJ16},
 %one the other hand it is inconvenient and costly for the end user to maintain the cluster nodes~\cite{DBLP:conf/osdi/KyrolaBG12}.
 
@@ -32,3 +33,32 @@ Therefore, this paper designs and implements a high performance disk-based prope
 %Therefore, in order to match up with the need of real-world problems,a high performance disk-based property graph matching system is desirable.
 
 \subsection*{Challenges \& Contributions}
+There are two fundamental components of a property graph matching system:
+the graph storage engine and the graph matching engine,
+and challenges lie in these two parts.
+
+The conventional graph storage method is the compressed sparse column (CSC) and the compressed sparse row (CSR) format~\cite{DBLP:conf/osdi/KyrolaBG12},
+which stores the in/out-edges separately for each vertex.
+However, because of the multi-edges in property graphs, the in/out-edges have to be searched many times to check the matching of a vertex, and result in excessive random disk seeks.
+To address this challenge, we propose the \emph{vertex-centric storage model} that stores all the necessary information together with the vertices, such that the vertices could be matched in a single sequential scan.
+
+%% Generally speaking, there are two kinds of graph isomorphism algorithm,
+%% differing on whether intermediate results are materialized.
+%% The first is the backtracking tree-searching method~\cite{DBLP:journals/jacm/Ullmann76,DBLP:journals/pvldb/LeeHKL12,DBLP:conf/sigmod/HanLL13,DBLP:conf/sigmod/KimLBHLKJ16},
+%% which does not generate intermediate results but have scaling problems~\cite{DBLP:conf/cloud/SerafiniMS17}.
+%% The second is the join-based algorithm~\cite{DBLP:journals/pvldb/LaiQLC15,DBLP:journals/pvldb/QiaoZC17,DBLP:journals/pvldb/SunWWSL12,DBLP:journals/pvldb/MhedhbiS19},
+%% which decomposes the pattern graph into smaller matching unit and materialize the intermediate results,
+%% and the final result is obtained by joining on these intermediate results.
+%% Because of the notorious poor locality of graphs,
+%% enormous amount of random disk accesses would be encountered for an out-of-core tree-searching approach.
+%% Based on this observation, this paper designs a join-based property graph matching algorithm.
+
+The most fundamental problem of a graph matching algorithm is to determine the basic matching unit.
+Edges are the simplest matching units, however, intermediate results much larger than the data graph would be generated and result in costly join operations.
+To avoid excessive joins, authors use more complex structures i.e.,
+frequent subgraphs, multi-hop edges, or cliques as their matching unit~\cite{DBLP:conf/sigmod/HeS08,DBLP:conf/edbt/ZhangLY09,DBLP:journals/pvldb/QiaoZC17}, however,
+these algorithms rely on super-linear indices~\cite{DBLP:journals/pvldb/SunWWSL12}.
+To address this challenge, we make a balance by choosing stars (a root vertex together with the neighbors of it) as our basic unit,
+which could keep the size of intermediate results less than $23\%$ of the data graph, as our experiment shows,
+and do not rely on super-linear indices.
+Moreover, our star decomposition algorithm is enhanced such that the stars keep as much filtering information as possible.
