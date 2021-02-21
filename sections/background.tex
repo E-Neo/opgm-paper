@@ -44,9 +44,8 @@ And the existence of multi-edge connecting two vertices makes it even harder to 
   the property graph matching problem is to report the set $\mathcal{I} = \{H | H \subseteq D, H \cong P, \psi(H) = true\}$.
 \end{definition}
 The property graph matching problem extends the property graph isomorphism problem by introducing the searching conditions (WHERE clause).
-Authors of previous works usually omit the searching condition $\psi$ in their definition of graph matching~\cite{DBLP:conf/sigmod/ShaoCCMYX14,DBLP:journals/pvldb/LaiQLC15,DBLP:conf/sigmod/KimLBHLKJ16,DBLP:journals/pvldb/QiaoZC17}.
+Existing works usually omit the searching condition $\psi$ in their definition of graph matching~\cite{DBLP:conf/sigmod/ShaoCCMYX14,DBLP:journals/pvldb/LaiQLC15,DBLP:conf/sigmod/KimLBHLKJ16,DBLP:journals/pvldb/QiaoZC17}.
 And they adopt a loosely related technique called \emph{symmetry-breaking}~\cite{DBLP:conf/recomb/GrochowK07},
-which can be viewed as a special case of WHERE clause by providing a partial order on $V(P)$ after exploiting the automorphism of $P$.
-However, as the WHERE clause is a necessary part of a graph query language,
-users of a real-world graph database usually provide their self-defined searching condition $\psi$ to filter out unnecessary matchings not only symmetry-breaking conditions.
+which can be viewed as a \emph{special} case of WHERE clause by providing a partial order on $V(P)$ after exploiting the automorphism of $P$.
+However, the WHERE clause is \emph{general}, users of a real-world graph database usually provide their self-defined searching condition $\psi$ to filter out unnecessary matchings not only symmetry-breaking conditions.
 And we also found that it can be decomposed and pushed down to lower phase to boost the evaluation of graph matching (Section~\ref{sec:match_optimize}).
