@@ -34,18 +34,19 @@ Therefore, we introduce SeqStar in this paper, a high performance out-of-core pr
 
 \subsection*{Contributions}
 There are two fundamental components in SeqStar:
-the graph storage engine and the graph matching engine,
-and challenges lie in these two parts.
+the graph storage engine and the graph matching engine. Both are designed specificly to deal with the graph machine problem efficiently.
 
-To handle the real-world property graph efficiently, we propose the \emph{vertex-centric storage model}.
-This can eliminate the random access problem in CSC and CSR which store in/out-edges separately.
+The storage engine in SeqStar uses the \emph{vertex-centric storage model} which stores the information related to a specific vertex together. Such a model can eliminate the random access problem in CSC and CSR which store in/out-edges separately. %这里加上csc和csr的全称，并加上引用
 
-To reduce memory usage, we make the following contributions:
-(1) a novel star decomposition algorithm that keeps all the useful filtering information on stars,
-(2) a novel compression algorithm for stars' matching results by postponing Cartesian production and digging equivalence classes,
-(3) an efficient and scalable pipeline join algorithm that is able to process the compressed data directly.
+For the graph matching engine, SeqStar uses a star decomposition based algorithm to run graph matching. %这里加一句如何把原图分解为星型子图
+We save all useful filtering information in each star subgraph after decomposition. To reduce the amount of memory that would be used as the storage of intermediate results, a novel compression method, which postponing Cartesian production and digging equivalence classes, is used for star matching results. SeqStar's efficient and scalable pipeline join algorithm is able to process the compressed data. To the best of our knowledge, SeqStar is the first system that integrates the optimization of WHERE clauses in the graph matching algorithm, by pushing the predicates down to the star matching process.
 
-Moreover, to the best of our knowledge, we are the first one to integrate the optimization of WHERE clauses in the graph matching algorithm, by pushing the predicates down to the star matching process.
+%To reduce memory usage, we make the following contributions:
+%(1) a novel star decomposition algorithm that keeps all the useful filtering information in stars,
+%(2) a novel compression algorithm for stars' matching results by postponing Cartesian production and digging equivalence classes,
+%(3) an efficient and scalable pipeline join algorithm that is able to process the compressed data directly.
+
+%Moreover, to the best of our knowledge, we are the first one to integrate the optimization of WHERE clauses in the graph matching algorithm, by pushing the predicates down to the star matching process.
 %% The conventional graph storage method is the compressed sparse column (CSC) and the compressed sparse row (CSR) format~\cite{DBLP:conf/osdi/KyrolaBG12},
 %% which stores the in/out-edges separately for each vertex.
 %% However, because of the multi-edges in property graphs, the in/out-edges have to be searched many times to check the matching of a vertex, and result in excessive random disk seeks.
