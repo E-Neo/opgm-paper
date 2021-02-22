@@ -5,49 +5,63 @@
   \caption{The workflow of SeqStar.}\label{img:architecture}
 \end{figure}
 Figure~\ref{img:architecture} shows the workflow of SeqStar.
-Because of the complexity in  real-world property graphs,
+Because of the complexity in real-world property graphs,
 the conventional in/out-edges storage method is not suitable and would incur many unnecessary random disk accesses.
 We develop a vertex-centric property graph storage model to address the problem (\S\ref{sec:storage}).
 Based on the storage model,
 we propose an efficient property graph matching engine that is able to solve real-world graph matching problems even on a laptop (\S\ref{sec:match}).
-The core of the engine is the planner, which avoids random disk accesses by decomposing the pattern into a series of stars.
+The core of the graph matching engine is the planner, which avoids random disk accesses by decomposing the pattern into a series of stars.
 Compared with existing works, we take steps further by introducing
 (1) a matching result compression algorithm which reduces the cost of materializing intermediate results,
 (2) a predicate pushdown optimizer that is able to filter out unnecessary matchings in an early stage and reduce the burden of the join process.
 
 Consider the Cypher\footnote{Neo4j's graph query language} query in Figure~\ref{img:cypher_query},
-which describes the pattern graph in Figure~\ref{img:pattern_graph}:
+which describes the pattern graph in Figure~\ref{img:running_example}:
 
-The optimizer first analyze the WHERE clause and extract useful filtering information.
-Based on the analysis result and the statistical information of the data graph,
-the planner selects a connected vertex cover ($u_1, u_4$) in the pattern as the roots of stars.
-The star generating algorithm keeps all the relevant edges and additional searching conditions in order to filter out unnecessary matchings as early as possible (\S\ref{sec:match_star}).
-
-With the help of SeqStar's vertex-centric storage engine,
-all the stars could be matched by scanning the data graph sequentially only once (\S\ref{sec:storage}).
-We compress the matching results by digging equivalence classes and postponing the Cartesian product in stars (\S\ref{sec:match_compress}).
-In the decomposed stars, both $u_2$ and $u_3$ are labeled ``User'', and the have the same connections to the root $u_1$ or $u_4$.
-We say $u_2$ and $u_3$ belong to the same \emph{neighbor equivalence class} and their matching images could be stored only once.
-Moreover, suppose $v_1$ in the data graph would match $u_1$, then there is no need to blindly enumerate the neighbors of $v_1$ to check the matching of $u_2$, $u_3$ and $u_4$,
-because we could always restore the matchings by Cartesian product on the image sets of $u_2$, $u_3$ and $u_4$.
-
-In order to obtain the final results of the query, (TODO pipeline join).
 \begin{figure}[ht]
   \begin{Verbatim}[fontsize=\small]
     MATCH (u1:Person)-[:FOLLOWS]->(u2:Person)-[:FOLLOWS]->(u1),
           (u1)-[:FOLLOWS]->(u3:Person)-[:FOLLOWS]->(u1),
-          (u1)-[:PUBLISHES]->(u4:Media), (u1)-[:LIKES]->(u4),
+          (u1)-[:PUBLISHES]->(u4:Media),
           (u2)-[:LIKES]->(u4)<-[:LIKES]-(u3)
-    WHERE u2 < u1 AND u3 < u1 AND u4 < 2021
+    WHERE u2 > u1 AND u3 > u1 AND u4 < 8
   \end{Verbatim}
-  \caption{Graph matching query of the pattern graph in Figure~\ref{img:pattern_graph}.}\label{img:cypher_query}
-\end{figure}
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width=0.48\textwidth]{img/pattern_graph.pdf}
-  \caption{A pattern for recommendation system of social network and the decomposition of stars.}\label{img:pattern_graph}
+  \caption{Example query.}\label{img:cypher_query}
 \end{figure}
 
+\begin{figure*}[ht]
+  \centering
+  \includegraphics[width=\textwidth]{img/running_example.pdf}
+  \caption{A running example.}\label{img:running_example}
+\end{figure*}
+
+The optimizer first analyze the WHERE clause and extract useful filtering information.
+The searching conditions $u_2> u_1$, $u_3 > u_1$ and $u_4 < 8$ are added to the pattern graph.
+Based on the analysis result and the statistical information of the data graph,
+the planner selects a connected vertex cover ($u_1, u_4$) in the pattern as the roots of stars.
+The star generating algorithm keeps all the relevant edges and additional searching conditions in order to filter out unnecessary matchings as early as possible.
+
+With the help of SeqStar's vertex-centric storage engine,
+all the stars could be matched by scanning the data graph sequentially only once (\S\ref{sec:match_star}).
+For example, in Figure~\ref{img:running_example}, to match the star rooted by $u_4$,
+SeqStar seeks to the vertices labeled by ``Media'' (colored in blue) quickly by searching the index in the storage engine.
+These candidate vertices ($4, 7, 9$) may match the root $u_4$.
+Then SeqStar scans the candidate vertices sequentially and finds that only vertex $4, 7$ could be matched ($8$ violates the constraint $u_4 < 8$).
+
+The intermediate results from star matching are not wrote down as conventional relationship rows,
+instead, SeqStar compresses them by digging equivalence classes and postponing Cartesian product to reduce memory usage (\S\ref{sec:match_compress}).
+In the decomposed stars, $u_2$ and $u_3$ have the same label, and they also have the same connections\footnote{$u_2 > u_1$ and $u_3 > u_1$ are equivalent in this case because they both represent the filter $f(x): x < u_1$} to the root $u_1$ or $u_4$.
+We say that $u_2$ and $u_3$ belong to the same \emph{neighbor equivalence class}.
+\emph{Image set} is the basic structure to hold the intermediate results.
+For each scanning vertex $v$ in the data graph,
+SeqStar checks the neighbors of $v$ and writes the matched neighbors together as image sets.
+To match the star rooted by $u_4$,
+for each candidate e.g., vertex $4$, SeqStar scans the neighbors of $4$ and finds that $u_1$'s image set of is $\{1\}$,
+the image set of $u_2, u_3$ is $\{2, 3, 8\}$.
+The intermediate results could always be restored by doing Cartesian product on the compressed data.
+
+Finally, SeqStar applies a novel pipeline join directly on the compressed data to obtain the final results.
+TODO, add examples.
 %% The vertex-centric storage engine is designed to be I/O efficient and support the real-world property graph well.
 %% The conventional way to store graphs on disk is to store the in/out-edges separately for each vertex,
 %% via the compressed sparse column (CSC) and the compressed sparse row (CSR) format~\cite{DBLP:conf/sc/PearceGA10}.
