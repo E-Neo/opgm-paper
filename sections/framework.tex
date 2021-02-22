@@ -15,6 +15,7 @@ Compared with existing works, we take steps further by introducing
 (1) a matching result compression algorithm which reduces the cost of materializing intermediate results,
 (2) a predicate pushdown optimizer that is able to filter out unnecessary matchings in an early stage and reduce the burden of the join process.
 
+Next, we show how a concrete query gets executed in SeqStar.
 Consider the Cypher\footnote{Neo4j's graph query language} query in Figure~\ref{img:cypher_query},
 which describes the pattern graph in Figure~\ref{img:running_example}:
 

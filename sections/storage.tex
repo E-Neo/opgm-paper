@@ -7,12 +7,11 @@ via the compressed sparse column (CSC) and the compressed sparse row (CSR) forma
 However, we find that this storage method have limitations to solve the real-world property graph matching problem:
 \emph{random disk accesses are unavoidable when in/out-edges are stored separately}. %上面这一段话毫无信息量。这里加上一句为啥分开存就会产生随机访问
 
+SeqStar stores the graph data in a vertex-centric way. 
 
-
-To solve the random disk access problem, in this section,
-we propose a novel property graph storage engine from a vertex-centric point of view.
 Noticeably, only part of the huge billion node data graph would be read when solving a property graph matching problem,
 with the help of a few easy to implement indices.
+
 And all the disk reads are sequential.
 Moreover, by using the property graph matching engine that will be discussed in the next section,
 we would be sure that the huge data graph would be read at most once.
