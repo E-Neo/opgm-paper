@@ -5,11 +5,11 @@
   \caption{The workflow of SeqStar.}\label{img:architecture}
 \end{figure}
 Figure~\ref{img:architecture} shows the workflow of SeqStar.
-Because of the complexity of the real-world property graphs,
-the conventional in/out-edges storage method is not suitable and would incur many unnecessary random disk accesses,
-and we develop a vertex-centric property graph storage model to address the problem (\S\ref{sec:storage}).
+Because of the complexity in  real-world property graphs,
+the conventional in/out-edges storage method is not suitable and would incur many unnecessary random disk accesses.
+We develop a vertex-centric property graph storage model to address the problem (\S\ref{sec:storage}).
 Based on the storage model,
-we propose an efficient property graph matching engine that is able to solve real-world problems even on a laptop (\S\ref{sec:match}).
+we propose an efficient property graph matching engine that is able to solve real-world graph matching problems even on a laptop (\S\ref{sec:match}).
 The core of the engine is the planner, which avoids random disk accesses by decomposing the pattern into a series of stars.
 Compared with existing works, we take steps further by introducing
 (1) a matching result compression algorithm which reduces the cost of materializing intermediate results,
