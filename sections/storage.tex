@@ -6,7 +6,7 @@ storing the in-edges and out-edges \textbf{separately} for each vertex,
 via the compressed sparse column (CSC) and the compressed sparse row (CSR) format~\cite{DBLP:conf/sc/PearceGA10}.
 However, this separation incurs excessive random access on real-world property graph because we need to get the information for in/out edges during pattern matching.
 
-Instead, SeqStar stores the graph data in a vertex-centric way which stores all the information related to one vertex \textbf{together}. 
+Instead, SeqStar stores the graph data in a vertex-centric way which stores all the information related to one vertex \textbf{together}.
 With small indexes on disks, pattern matching can quickly get the correct address of relevant data on disk during pattern matching. Because all the related information is stored together, SeqStar can make sure that all disk reads are sequential.
 
 Moreover, by using the property graph matching engine that will be discussed in the next section,
@@ -15,36 +15,32 @@ we are sure that the huge data graph will be read at most once.
 %The property graph matching problem requires the complete connection information between vertices,
 %however, the conventional double list storage method break up the completeness and results in random disk accesses.
 
-Consider the simple patten graph in Figure~\ref{img:celebrity_star}, which simply finds friendship pairs in a data graph.
-If two vertices in the data graph, say $v_i$ and $v_j$, are supposed to match the pattern,
+Consider the example in Figure~\ref{img:running_example}.
+If two vertices in the data graph, say $v_i$ and $v_j$, are supposed to match $u_1$ and $u_2$,
 we must be sure that $v_i$ and $v_j$ follows each other at the same time.
-This kind of neighbor checking is also the most essentially building block of a property graph matching engine.
+This kind of neighbor checking is the most essentially building block of a property graph matching engine.
 
-In the data graph, $v_1$ has $m$ in-edges and $n$ out-edges, and suppose that they are stored separately in the traditional way.
-In order to determine whether $v_1$ could match $u_1$,
-one has to scan the in-edges (or equally, the out-edges) of $v_1$ and then check whether the visited neighbor is in the out-edges (or in-edges) list.
+In the data graph, vertex $1$ has $4$ in-edges and $7$ out-edges.
+Suppose that they are stored separately in the traditional way.
+In order to determine whether vertex $1$ could match $u_1$,
+one has to scan the in-edges (or equally, the out-edges) of vertex $1$ and then check whether the visited neighbor is in the out-edges (or in-edges) list.
 Such a scan and check method would significantly slow down the graph matching process,
 because the checking process results in random disk reads.
 For real world power-law graphs, where the celebrities or trending topics have a huge amount of followers, this phenomenon greatly exacerbate the random access problem.
 %the in/out-edges lists stored on disk have to be swapped in and out frequently during the scan and check process as a result of the random disk access pattern.
-Multiple edges between $u_1$ and $u_2$ make things even worse. 
+%% Multiple edges between $u_1$ and $u_2$ make things even worse.
 %And it would be more complicated if there are more than two edges between $u_1$ and $u_2$ in the pattern graph.
+
+Contrarily, SeqStor's vertex-centric storage keeps the necessary connection information together for graph matching.
+Figure~\ref{img:data_example} shows the logical storage structure for the data graph in Figure~\ref{img:running_example}.
+The specific edge information (direction, types) could be obtained by the position of the stored edge labels, i.e.,
+the upper labels means the direction is pointed from the root and the lower labels means the opposite.
+
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=0.38\textwidth]{img/celebrity_star.pdf}
-  \caption{Part of a social network data graph where the center $v_1$ is a user, and a simple pattern graph.}\label{img:celebrity_star}
+  \includegraphics[width=0.5\textwidth]{img/data_example.pdf}
+  \caption{The vertex-centric storage structure of the data graph in Figure~\ref{img:running_example}.}\label{img:data_example}
 \end{figure}
-
-On the contrarily, SeqStor's vertex centric storage keeps the necessary connection information together for graph matching.
-Take Figure~\ref{img:data_neighbors} as an example, which shows the logical storage structure for the celebrity in Figure~\ref{img:celebrity_star}.
-Real-world property graphs are directed labeled graphs, instead of splitting the edges into in/out-edges,
-we treat all the neighbors equally and store the connection information together with the neighbor vertex.
-The specific edge information (direction, types) could be obtained by the position of the stored edge labels, i.e.,
-the upper labels means the direction is pointed to the root and the lower labels means the opposite.
-For example, the ``:FOLLOWS'' at the upper right corner of $v_3$ means $v_3$ follows $v_1$,
-the two ``:FOLLOWS'' besides $v_{m+1}$ indicate that $v_1$ and $v_{m+1}$ follow each other.
-And multiple edges are ubiquitous in property graphs, we support that by store the edge labels in a sequence,
-as is shown in the figure where $v_1$ publishes a social media $v_{m+n}$ and also likes it.
 
 By storing the neighbors in our vertex-centric approach,
 all the necessary information are now stored locally together with the vertices,

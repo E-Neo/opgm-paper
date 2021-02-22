@@ -44,7 +44,7 @@ The star generating algorithm keeps all the relevant edges and additional search
 
 With the help of SeqStar's vertex-centric storage engine,
 all the stars can be matched by scanning the data graph sequentially only once (\S\ref{sec:match_star}).
-For example, in Figure~\ref{img:running_example}, to match the star rooted by $u_4$,
+For example, to match star $S_2$,
 SeqStar seeks to the vertices labeled by ``Media'' (colored in blue) quickly by searching the index in the storage engine.
 These candidate vertices ($4, 7, 9$) may match the root $u_4$.
 Then SeqStar scans the candidate vertices sequentially and finds that only vertex $4, 7$ could be matched ($8$ violates the constraint $u_4 < 8$).
@@ -58,14 +58,14 @@ For example $\{2, 3, 5, 6\}$ in $T_1$ is the image set of $u_2$ and $u_3$.
 Image set is the basic structure to hold the intermediate results.
 For each scanning vertex $v$ in the data graph,
 SeqStar checks the neighbors of $v$ and stores the matched neighbors together as image sets.
-To match the star rooted by $u_4$,
+To match the star $S_2$,
 for each candidate e.g., vertex $4$, SeqStar scans the neighbors of $4$ and finds that $u_1$'s image set of is $\{1\}$,
 the image set of $u_2, u_3$ is $\{2, 3, 8\}$.
 The tuple $(4, \{1\}, \{2, 3, 8\})$ is than appended to the compressed intermediate results,
 and we name the tuple as \emph{SuperRow}.
 Note that the first column contains only one vertex, which matches the root of a star.
 
-Finally, SeqStar joins on these SuperRows to obtain the final results.
+Finally, SeqStar joins on these SuperRows to obtain the final results (\S\ref{sec:match_join}).
 After the SuperRows are obtained,
 the planner generates a join order ($T_1 \Join T_2$ in this case) based on the statistical information of the SuperRows.
 For each SuperRow $R_1$ in $T_1$, SeqStar scans the image set of $u_4$ and finds the corresponding SuperRow $R_2$ in $T_2$,
