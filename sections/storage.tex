@@ -1,11 +1,13 @@
 \section{An I/O Efficient Vertex-Centric Storage Method for Property Graph}\label{sec:storage}
-The random access problem is a well known hard problem for out-of-core systems,
-especially for the graph related problem, which is notorious for its poor locality~\cite{DBLP:conf/osdi/KyrolaBG12}.
-The traditional way to store graphs on disk is the double list method:
-Stores the in-edges and out-edges separately for each vertex,
+%The random access problem is a well known hard problem for out-of-core systems, especially for the graph related problem, which is notorious for its poor locality~\cite{DBLP:conf/osdi/KyrolaBG12}.
+
+Many graph computing frameworks store graphs on disk using the double list method:
+storing the in-edges and out-edges separately for each vertex,
 via the compressed sparse column (CSC) and the compressed sparse row (CSR) format~\cite{DBLP:conf/sc/PearceGA10}.
 However, we find that this storage method have limitations to solve the real-world property graph matching problem:
-\emph{Random disk accesses are unavoidable when in/out-edges are stored separately}.
+\emph{random disk accesses are unavoidable when in/out-edges are stored separately}. %上面这一段话毫无信息量。这里加上一句为啥分开存就会产生随机访问
+
+
 
 To solve the random disk access problem, in this section,
 we propose a novel property graph storage engine from a vertex-centric point of view.
