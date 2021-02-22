@@ -49,8 +49,8 @@ SeqStar seeks to the vertices labeled by ``Media'' (colored in blue) quickly by 
 These candidate vertices ($4, 7, 9$) may match the root $u_4$.
 Then SeqStar scans the candidate vertices sequentially and finds that only vertex $4, 7$ could be matched ($8$ violates the constraint $u_4 < 8$).
 
-The intermediate results from star matching are not stored as conventional relationship rows,
-instead, SeqStar compresses them by digging equivalence classes and postponing Cartesian product to reduce memory usage (\S\ref{sec:match_compress}).
+The intermediate results from star matching are not stored as conventional relationship rows.
+Instead, SeqStar compresses them by digging equivalence classes and postponing Cartesian product to reduce memory usage (\S\ref{sec:match_compress}).
 In the decomposed stars, $u_2$ and $u_3$ have the same label, and they also have the same connections\footnote{$u_2 > u_1$ and $u_3 > u_1$ are equivalent in this case because they both represent the filter $f(x): x < u_1$} to the root $u_1$ or $u_4$.
 We say that $u_2$ and $u_3$ belong to the same \emph{neighbor equivalence class}.
 \emph{Image set} is the basic structure to hold the intermediate results.
