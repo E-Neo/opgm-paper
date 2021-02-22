@@ -15,7 +15,6 @@ The core of the engine is the planner, which avoids random disk accesses by deco
 Compared with existing works, we take steps further by introducing
 (1) a matching result compression algorithm which reduces the cost of materializing intermediate results,
 (2) a predicate pushdown optimizer that is able to filter out unnecessary matchings in an early stage and reduce the burden of the join process.
-We now describe SeqStar in more detail:
 \begin{figure}[ht]
   \centering
   \includegraphics[width=0.48\textwidth]{img/pattern_graph.pdf}
