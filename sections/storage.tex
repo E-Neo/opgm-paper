@@ -23,10 +23,10 @@ This kind of neighbor checking is also the most essentially building block of a 
 In the data graph, $v_1$ has $m$ in-edges and $n$ out-edges, and suppose that they are stored separately in the traditional way.
 In order to determine whether $v_1$ could match $u_1$,
 one has to scan the in-edges (or equally, the out-edges) of $v_1$ and then check whether the visited neighbor is in the out-edges (or in-edges) list.
-This scan and check method would significantly slow down the graph matching process,
-because the checking process results in random disk read.
-For real world power-law graphs, where the celebrities or trending topics have a huge amount of followers,
-the in/out-edges lists stored on disk have to be swapped in and out frequently during the scan and check process as a result of the random disk access pattern.
+Such a scan and check method would significantly slow down the graph matching process,
+because the checking process results in random disk reads.
+For real world power-law graphs, where the celebrities or trending topics have a huge amount of followers, this phenomenon greatly exacerbate the random access problem.
+%the in/out-edges lists stored on disk have to be swapped in and out frequently during the scan and check process as a result of the random disk access pattern.
 And it would be more complicated if there are more than two edges between $u_1$ and $u_2$ in the pattern graph.
 \begin{figure}[ht]
   \centering
