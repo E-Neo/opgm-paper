@@ -43,7 +43,7 @@ the planner selects a connected vertex cover ($u_1, u_4$) in the pattern as the 
 The star generating algorithm keeps all the relevant edges and additional searching conditions in order to filter out unnecessary matchings as early as possible.
 
 With the help of SeqStar's vertex-centric storage engine,
-all the stars could be matched by scanning the data graph sequentially only once (\S\ref{sec:match_star}).
+all the stars can be matched by scanning the data graph sequentially only once (\S\ref{sec:match_star}).
 For example, in Figure~\ref{img:running_example}, to match the star rooted by $u_4$,
 SeqStar seeks to the vertices labeled by ``Media'' (colored in blue) quickly by searching the index in the storage engine.
 These candidate vertices ($4, 7, 9$) may match the root $u_4$.
@@ -53,7 +53,9 @@ The intermediate results from star matching are not stored as conventional relat
 Instead, SeqStar compresses them by digging equivalence classes and postponing Cartesian product to reduce memory usage (\S\ref{sec:match_compress}).
 In the decomposed stars, $u_2$ and $u_3$ have the same label, and they also have the same connections\footnote{$u_2 > u_1$ and $u_3 > u_1$ are equivalent in this case because they both represent the filter $f(x): x < u_1$} to the root $u_1$ or $u_4$.
 We say that $u_2$ and $u_3$ belong to the same \emph{neighbor equivalence class}.
-\emph{Image set} is the basic structure to hold the intermediate results.
+For each neighbor equivalence class, the matched vertices are stored together as a \emph{image set}.
+For example $\{2, 3, 5, 6\}$ in $T_1$ is the image set of $u_2$ and $u_3$.
+Image set is the basic structure to hold the intermediate results.
 For each scanning vertex $v$ in the data graph,
 SeqStar checks the neighbors of $v$ and stores the matched neighbors together as image sets.
 To match the star rooted by $u_4$,
@@ -71,8 +73,8 @@ the join result of $u_2$, $u_3$ is obtain by intersection on the corresponding c
 i.e., $\{2, 3, 5, 6\} \cap \{2, 3, 8\} = \{2, 3\}$, $\{2, 3, 5, 6\} \cap \{5, 6\} = \{5, 6\}$.
 If more than two stars are decomposed from the pattern graph,
 instead of join them one by one,
-the planner in SeqStar would generate a pipeline plan to multi-join on the SuperRows.
-By doing so, no new intermediate results would be generated.
+the planner in SeqStar will generate a pipeline plan to multi-join on the SuperRows.
+By doing so, no new intermediate results will be generated.
 SeqStar generates the compressed final results in a stream manner,
 and the decompression is done by doing Cartesian production on the fly to report the final answer.
 
