@@ -27,16 +27,15 @@ Such a scan and check method would significantly slow down the graph matching pr
 because the checking process results in random disk reads.
 For real world power-law graphs, where the celebrities or trending topics have a huge amount of followers, this phenomenon greatly exacerbate the random access problem.
 %the in/out-edges lists stored on disk have to be swapped in and out frequently during the scan and check process as a result of the random disk access pattern.
-And it would be more complicated if there are more than two edges between $u_1$ and $u_2$ in the pattern graph.
+Multiple edges between $u_1$ and $u_2$ make things even worse. 
+%And it would be more complicated if there are more than two edges between $u_1$ and $u_2$ in the pattern graph.
 \begin{figure}[ht]
   \centering
   \includegraphics[width=0.38\textwidth]{img/celebrity_star.pdf}
   \caption{Part of a social network data graph where the center $v_1$ is a user, and a simple pattern graph.}\label{img:celebrity_star}
 \end{figure}
 
-The source of the problem is that the in/out-edges are stored separately in the conventional method,
-whereas the property matching process need to retrieve both in- and out- connection information to determine whether a neighbor vertex could be matched.
-Based on this observation, we propose a vertex-centric property graph storage method that always keeps the necessary connection information together for graph matching.
+On the contrarily, SeqStor's vertex centric storage keeps the necessary connection information together for graph matching.
 Take Figure~\ref{img:data_neighbors} as an example, which shows the logical storage structure for the celebrity in Figure~\ref{img:celebrity_star}.
 Real-world property graphs are directed labeled graphs, instead of splitting the edges into in/out-edges,
 we treat all the neighbors equally and store the connection information together with the neighbor vertex.
