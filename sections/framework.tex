@@ -58,10 +58,23 @@ SeqStar checks the neighbors of $v$ and writes the matched neighbors together as
 To match the star rooted by $u_4$,
 for each candidate e.g., vertex $4$, SeqStar scans the neighbors of $4$ and finds that $u_1$'s image set of is $\{1\}$,
 the image set of $u_2, u_3$ is $\{2, 3, 8\}$.
-The intermediate results could always be restored by doing Cartesian product on the compressed data.
+The tuple $(4, \{1\}, \{2, 3, 8\})$ is than appended to the compressed intermediate results,
+and we name the tuple as \emph{SuperRow}.
+Note that the first column contains only one vertex, which matches the root of a star.
 
-Finally, SeqStar applies a novel pipeline join directly on the compressed data to obtain the final results.
-TODO, add examples.
+Finally, SeqStar joins on these SuperRows to obtain the final results.
+After the SuperRows are obtained,
+the planner generates a join order ($T_1 \Join T_2$ in this case) based on the statistical information of the SuperRows.
+For each SuperRow $R_1$ in $T_1$, SeqStar scans the image set of $u_4$ and finds the corresponding SuperRow $R_2$ in $T_2$,
+the join result of $u_2$, $u_3$ is obtain by intersection on the corresponding columns of $R_1$ and $R_2$,
+i.e., $\{2, 3, 5, 6\} \cap \{2, 3, 8\} = \{2, 3\}$, $\{2, 3, 5, 6\} \cap \{5, 6\} = \{5, 6\}$.
+If more than two stars are decomposed from the pattern graph,
+instead of join them one by one,
+the planner in SeqStar would generate a pipeline plan to multi-join on the SuperRows.
+By doing so, no new intermediate results would be generated.
+SeqStar generates the compressed final results in a stream manner,
+and the decompression is done by doing Cartesian production on the fly to report the final answer.
+
 %% The vertex-centric storage engine is designed to be I/O efficient and support the real-world property graph well.
 %% The conventional way to store graphs on disk is to store the in/out-edges separately for each vertex,
 %% via the compressed sparse column (CSC) and the compressed sparse row (CSR) format~\cite{DBLP:conf/sc/PearceGA10}.
