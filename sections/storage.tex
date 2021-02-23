@@ -49,7 +49,7 @@ No random disk access appears during the whole process.
 %Despite of the fact that the size of the whole data graph could be gigantic,we may only care a fraction of the graph by specify the labels in our query for a concrete graph matching problem.
 There are two basic operations in a graph matching engine:
 (1) Given a data vertex, retrieve its neighbors with a specific label;
-(2) Given a vertex label, retrieve the vertices with the label.
+(2) Given a vertex label, retrieve the vertices with the label. The first operation is supported by \emph{local index} and the second operation is supported by \emph{global index}.
 %% In the following paragraphs, we'll show how to make the two operations efficiently by adding a few simple but efficient indices to the vertex-centric storage engine,
 %% which reduces the searching space and I/O significantly.
 
@@ -65,24 +65,24 @@ For SeqStor's vertex-centric storage,
 we can build the index as in Figure~\ref{img:data_example}.
 These indexes are key-value pairs mapping the vertex labels to the starting/ending position of the neighbors on disk.
 Since it is used to locate only the neighbors of a specific vertex, we refer to this kind of index as \emph{local index}.
-With the help of local index, we could skip all the unnecessary neighbor vertices and only scan the necessary ones.
+With the help of local index, we can skip all the unnecessary neighbors and only scan the necessary ones.
 %% \begin{figure}[ht]
 %%   \centering
 %%   \includegraphics[width=0.48\textwidth]{img/data_neighbors.pdf}
 %%   \caption{The vertex-centric storage structure of the celebrity $v_1$ in Figure~\ref{img:celebrity_star}.}\label{img:data_neighbors}
 %% \end{figure}
 
-From a higher perspective, in order to solve a property graph matching problem,
-one need to firstly select a root vertex in the data graph.
-%% regardless of the concrete graph matching algorithm whether it is tree based or join based.
-There is no need to scan all the vertices in a billion node data graph if we only care about vertices with the specific labels.
-Just like the local index we discussed above, we could add a global index which contains key-value pairs that maps the labels to the corresponding position on disk (Figure~\ref{img:data_example}).
+%From a higher perspective, in order to solve a property graph matching problem,
 
-The super-linear index problem of existing work was pointed out by~\cite{DBLP:journals/pvldb/SunWWSL12},
-where indexes grow \emph{super-linearly} with respect to the \emph{edges}.
+To begin a match, one need to firstly select a root vertex in the data graph.
+%% regardless of the concrete graph matching algorithm whether it is tree based or join based.
+%There is no need to scan all the vertices in a billion node data graph if we only care about vertices with the specific labels.
+%Just like the local index we discussed above, we could add a global index which 
+To this end, a \emph{global index} is constructed to contain key-value pairs that maps the labels to the corresponding position on disk (Figure~\ref{img:data_example}).
+
+The sizes of indexes in SeqStar are relatively smaller than existing works which have a super-linear index problem~\cite{DBLP:journals/pvldb/SunWWSL12}. The sizes of indexes grow \emph{super-linearly} with respect to the \emph{edges}.
 In contrast, indexes of SeqStar grows \emph{linearly} with respect to the \emph{vertices}.
-In SeqStar, the length of global index is the length of vertex labels ($l$),
-and the size of local indexes is bound to $l \times n$ ($n$ is the length of vertices).
+The size of the global index is the same as the number of vertex labels ($l$). The size of local indexes is bounded to $l \times n$ ($n$ is the number of vertices).
 %% In summery, for a property graph matching problem, we could quickly jump to the domain of interest with the help of the global index, and then scan and check only the necessary neighbors with the help of our local index.
 %% After jump to the correct position, all the disk reads are sequential.
 %% \begin{figure}[ht]
