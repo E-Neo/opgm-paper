@@ -47,7 +47,7 @@ all the stars can be matched by scanning the data graph sequentially only once (
 For example, to match star $S_2$,
 SeqStar seeks to the vertices labeled with ``Media'' (colored in blue) quickly by searching the index in the storage engine.
 The candidate vertices ($4, 7, 9$) may match the root $u_4$.
-Then SeqStar scans the candidate vertices sequentially and finds that only vertex $4, 7$ can matched ($8$ violates the constraint $u_4 < 8$).
+Then SeqStar scans the candidate vertices sequentially and finds that only vertex $4, 7$ can be matched ($8$ violates the constraint $u_4 < 8$).
 
 The intermediate results from star matching are not stored as conventional relationship rows.
 Instead, SeqStar compresses them by digging equivalence classes and postponing Cartesian product to reduce memory usage (\S\ref{sec:match_compress}).
