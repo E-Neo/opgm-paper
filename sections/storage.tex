@@ -10,7 +10,7 @@ Instead, SeqStar stores the graph data in a vertex-centric way which stores all 
 With small indexes on disks, pattern matching can quickly get the correct address of relevant data on disk during pattern matching. Because all the related information is stored together, SeqStar can make sure that all disk reads are sequential.
 
 Moreover, by using the property graph matching engine that will be discussed in the next section,
-we are sure that the huge data graph will be read at most once.
+the huge data graph will be read at most once.
 \subsection{Scan the Data Graph Sequentially}
 %The property graph matching problem requires the complete connection information between vertices,
 %however, the conventional double list storage method break up the completeness and results in random disk accesses.
