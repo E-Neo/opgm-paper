@@ -33,7 +33,7 @@ For real world power-law graphs, where the celebrities or trending topics have a
 
 On the contrarily, SeqStor's vertex-centric storage keeps the necessary connection information together for graph matching.
 Figure~\ref{img:data_example} shows the logical structure for the data graph in Figure~\ref{img:running_example}.
-The specific edge information (direction, types) could be obtained by the stored edge labels, i.e., the top labels associate to the out-edges and the bottom labels associate to the in-edges (Figure~\ref{img:data_example}). 
+The specific edge information (direction, types) could be obtained by the stored edge labels, i.e., the top labels associate to the out-edges and the bottom labels associate to the in-edges (Figure~\ref{img:data_example}).
 
 \begin{figure}[ht]
   \centering
@@ -45,10 +45,10 @@ By using the vertex centric graph data storage, the neighborhood checking proces
 For $S_1$ in Figure~\ref{img:running_example},
 to check the neighbors of vertex $1$, SeqStar scans the neighbors $2, 3, 5, 6$ and $4, 7, 9$ sequentially.
 No random disk access appears during the whole process.
-\subsection{Simple Indices to Reduce I/Os}
+\subsection{Simple Indexes to Reduce I/Os}
 Despite of the fact that the size of the whole data graph could be gigantic,
 we may only care a fraction of the graph by specify the labels in our query for a concrete graph matching problem.
-There are two basic operations for a graph database to solve a graph matching problem:
+There are two basic operations for a graph matching engine to solve a property graph matching problem:
 (1) Given a data vertex, retrieve the neighbors of it with a specific label;
 (2) Given a vertex label, retrieve the data vertices with the label.
 %% In the following paragraphs, we'll show how to make the two operations efficiently by adding a few simple but efficient indices to the vertex-centric storage engine,
@@ -111,7 +111,7 @@ Note that the vertex-centric storage model is not restricted to this disk format
 In fact, as long as a storage engine could implement the two iterators efficiently,
 it could implement the vertex-centric storage model well.
 For example, the sorted vertices could be replaced with B-tree to make the insertion/deletion operation easier for dynamic graphs.
-It is also possible to implement the vertex-centric storage model in memory as buffer cache for existing graph databases to achieve better locality.
+%% It is also possible to implement the vertex-centric storage model in memory as buffer cache for existing graph databases to achieve better locality.
 Moreover, we are now working on implementing the vertex-centric storage model on top of relational database to embrace the power of the half-century-year-old mature technology.
 \begin{figure}[ht]
   \centering
