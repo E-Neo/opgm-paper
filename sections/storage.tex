@@ -90,20 +90,23 @@ The size of the global index is the same as the number of vertex labels ($l$). T
 %%   \includegraphics[width=0.48\textwidth]{img/data_vertices.pdf}
 %%   \caption{The storage structure overview of the data graph in Figure~\ref{img:celebrity_star}.}\label{img:data_vertices}
 %% \end{figure}
-\subsection{Storage Iterator}\label{sec:storage_iterators}
+\subsection{Iterators over Graph Storage}\label{sec:storage_iterators}
 For applications that need to perform the two basic operations (visiting vertices and visiting the neighbors),
 we define two iterators as the interface to visit the data graph:
 \begin{enumerate}[noitemsep]
-\item \textsc{VertexIter}: Given a vertex label, it iterates through the vertices with the specified label ordered by the ID of vertices;
-\item \textsc{NeighborIter}: Given a data vertex and a label, it visits the neighbors with the label, the neighbors are also sorted by the IDs.
+\item \textsc{VertexIter} iterates the vertices with the given label, ordered by vertex ID. 
+%Given a vertex label, it iterates through the vertices with the specified label ordered by the ID of vertices;
+\item \textsc{NeighborIter} iterates the neighbors of a given vertex to match a given label. The neighbors are sorted by their IDs.
+
+%Given a data vertex and a label, it visits the neighbors with the label, the neighbors are also sorted by the IDs.
 \end{enumerate}
 %% In Section~\ref{sec:match} we'll show that the sorting constraint could boost the matching of property graphs.
 
 These iterators could be implemented efficiently by using SeqStar's vertex-centric storage model.
-And we also provide a compact disk format implementing the vertex-centric storage model in Figure~\ref{img:data_graph}.
-Vertices are sorted by their IDs, and we store in/out-degrees as early filters when scanning the vertices.
-Edge labels are stored as integers here, however, bitmap could also be used for higher performance.
-The \textsc{VertexIter} just searches the global index and then visits the disk data sequentially;
+Figure~\ref{img:data_graph} shows the on-disk layout of our vertex-centric storage model.
+Vertices are sorted by their IDs. We store in/out-degrees as early filters when scanning the vertices.
+Edge labels are stored as integers here(alternatively, bitmap could also be used).
+The \textsc{VertexIter} searches the global index and then visits the disk data sequentially.
 The \textsc{NeighborIter} scans the neighbors with the help of the local index.
 
 %% Note that the vertex-centric storage model is not restricted to this disk format.
@@ -115,5 +118,7 @@ The \textsc{NeighborIter} scans the neighbors with the help of the local index.
 \begin{figure}[ht]
   \centering
   \includegraphics[width=0.48\textwidth]{img/data_graph.pdf}
-  \caption{An I/O efficient property graph storage method that can boost the graph matching process.}\label{img:data_graph}
+%  \caption{An I/O efficient property graph storage method that can boost the graph matching process.}
+\caption{On-disk layout of vertex-centric storage model.}
+\label{img:data_graph}
 \end{figure}
