@@ -45,12 +45,11 @@ By using the vertex centric graph data storage, the neighborhood checking proces
 For $S_1$ in Figure~\ref{img:running_example},
 to check the neighbors of vertex $1$, SeqStar scans the neighbors $2, 3, 5, 6$ and $4, 7, 9$ sequentially.
 No random disk access appears during the whole process.
-\subsection{Simple Indexes to Reduce I/Os}
-Despite of the fact that the size of the whole data graph could be gigantic,
-we may only care a fraction of the graph by specify the labels in our query for a concrete graph matching problem.
-There are two basic operations for a graph matching engine to solve a property graph matching problem:
-(1) Given a data vertex, retrieve the neighbors of it with a specific label;
-(2) Given a vertex label, retrieve the data vertices with the label.
+\subsection{Graph Data Indexes}
+%Despite of the fact that the size of the whole data graph could be gigantic,we may only care a fraction of the graph by specify the labels in our query for a concrete graph matching problem.
+There are two basic operations in a graph matching engine:
+(1) Given a data vertex, retrieve its neighbors with a specific label;
+(2) Given a vertex label, retrieve the vertices with the label.
 %% In the following paragraphs, we'll show how to make the two operations efficiently by adding a few simple but efficient indices to the vertex-centric storage engine,
 %% which reduces the searching space and I/O significantly.
 
