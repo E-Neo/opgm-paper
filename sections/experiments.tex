@@ -1,7 +1,7 @@
 \section{Evaluation}\label{sec:experiments}
 \subsection{Setup}
 \subsubsection{Environment}
-Most of the experiments were performed on a single machine with two Intel Xeon Processor E5--2699 v4 CPUs, 64 GB of RAM,
+The experiments were performed on a single machine with two Intel Xeon Processor E5--2699 v4 CPUs, 64 GB of RAM,
 and a 800GB SSD\@.
 Memory caches were dropped before each experiment to force disk loads.
 \subsubsection{Datasets and Queries}
@@ -16,15 +16,15 @@ The queries we choose represent different topologies: trees, chains, and cyclic 
 $q_9$ --- $q_{12}$ are queries with multi-edges.
 \begin{table}
   \caption{Datasets}\label{tab:datasets}
-  \begin{tabular}{lrrr}
+  \begin{tabular}{lrr}
     \toprule
-    Name & $|V|$ & $|E|$ & \parbox[t][][t]{0.18\linewidth}{Time of Pre-processing (in sec)} \\
+    Name & $|V|$ & $|E|$ \\
     \midrule
-    soc-Epinions (EP) & 76K & 509K & 0.321 \\
-    web-Google (GO) & 876K & 5.1M & 4.530 \\
-    web-BerkStan (BS) & 685K & 7.6M & 5.240 \\
-    soc-LiveJournal (LJ) & 4.8M & 69M & 55.095 \\
-    com-Orkut (OK) & 3.1M & 117.2M & 100.323 \\
+    soc-Epinions (EP) & 76K & 509K \\
+    web-Google (GO) & 876K & 5.1M \\
+    web-BerkStan (BS) & 685K & 7.6M \\
+    soc-LiveJournal (LJ) & 4.8M & 69M \\
+    com-Orkut (OK) & 3.1M & 117.2M \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -35,7 +35,18 @@ $q_9$ --- $q_{12}$ are queries with multi-edges.
   \caption{The queries.}\label{img:queries}
 \end{figure}
 
-\subsection{Pre-processing Cost}
+\subsection{Preprocessing Cost}
+We first study the preprocessing cost of SeqStar's vertex-centric storage engine.
+The preprocessing incurs a external sort on the original graph data to generate the formatted data graph shown in Figure~\ref{img:data_graph}.
+The cost is $\mathcal{O}(n \log n)$ where n is the size of the unsorted graph data.
+We use 32-bit integers to store the vertex IDs, and 16-bit integers to store the vertex/edge labels.
+As is shown in Figure~\ref{img:exp_preprocessing}, the preprocessing time grows linearly with respect to the size of graph data.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.4\textwidth]{img/exp_preprocessing.pdf}
+  \caption{Preprocessing time of SeqStar.}\label{img:exp_preprocessing}
+\end{figure}
 \subsection{Comparative Performance}
 \subsection{Compression Ratio}
 \subsection{Performance of Star Decompression}
