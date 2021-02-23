@@ -101,16 +101,16 @@ we define two iterators as the interface to visit the data graph:
 \item \textsc{VertexIter}: Given a vertex label, it iterates through the vertices with the specified label ordered by the ID of vertices;
 \item \textsc{NeighborIter}: Given a data vertex and a label, it visits the neighbors with the label, the neighbors are also sorted by the IDs.
 \end{enumerate}
-In Section~\ref{sec:match} we'll show that the sorting constraint could boost the matching of property graphs.
+%% In Section~\ref{sec:match} we'll show that the sorting constraint could boost the matching of property graphs.
 
-These iterators could be implemented efficiently by using our vertex-centric storage model.
+These iterators could be implemented efficiently by using SeqStar's vertex-centric storage model.
 And we also provide a compact disk format implementing the vertex-centric storage model in Figure~\ref{img:data_graph}.
 Vertices are sorted by their IDs, and we store in/out-degrees as early filters when scanning the vertices.
 Edge labels are stored as integers here, however, bitmap could also be used for higher performance.
 The \textsc{VertexIter} just searches the global index and then visits the disk data sequentially;
 The \textsc{NeighborIter} scans the neighbors with the help of the local index.
 
-Please note that the vertex-centric storage model is not restricted to this disk format.
+Note that the vertex-centric storage model is not restricted to this disk format.
 In fact, as long as a storage engine could implement the two iterators efficiently,
 it could implement the vertex-centric storage model well.
 For example, the sorted vertices could be replaced with B-tree to make the insertion/deletion operation easier for dynamic graphs.
