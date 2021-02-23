@@ -43,48 +43,57 @@ the upper labels means the direction is pointed from the root and the lower labe
 \end{figure}
 
 By storing the neighbors in our vertex-centric approach,
-all the necessary information are now stored locally together with the vertices,
-and the neighborhood checking process of a property graph matching engine could be accomplished efficiently within a sequential disk scan.
-For the simple pattern in Figure~\ref{img:celebrity_star}, if we suppose that $v_1$ matches $u_1$ and want to check whether the neighbors of $v_1$ would match $u_2$, we could just scan the neighbors and check the labels sequentially and find that $v_{m+1}$ would match.
-No random disk access appears during the whole process, and there is no need to use complex indices to check the edge labels.
+all the necessary information are now stored locally together with the vertices.
+The neighborhood checking process can be accomplished efficiently within a sequential disk scan.
+For $S_1$ in Figure~\ref{img:running_example},
+to check the neighbors of vertex $1$, SeqStar scans the neighbors $2, 3, 5, 6$ and $4, 7, 9$ sequentially.
+No random disk access appears during the whole process.
 \subsection{Simple Indices to Reduce I/Os}
 Despite of the fact that the size of the whole data graph could be gigantic,
 we may only care a fraction of the graph by specify the labels in our query for a concrete graph matching problem.
 There are two basic operations for a graph database to solve a graph matching problem:
-1. Given a data vertex, retrieve the neighbors of it with a specific label;
-2. Given a vertex label, retrieve the data vertices with the label.
-In the following paragraphs, we'll show how to make the two operations efficiently by adding a few simple but efficient indices to the vertex-centric storage engine,
-which reduces the searching space and I/O significantly.
+(1) Given a data vertex, retrieve the neighbors of it with a specific label;
+(2) Given a vertex label, retrieve the data vertices with the label.
+%% In the following paragraphs, we'll show how to make the two operations efficiently by adding a few simple but efficient indices to the vertex-centric storage engine,
+%% which reduces the searching space and I/O significantly.
 
-Consider again the pattern graph in Figure~\ref{img:celebrity_star}, where we only care about the users in the social network,
-no matter how much social media a user have published or viewed we could just ignore all of them in our specific problem.
-A straightforward idea is to group the neighbor vertices with the same label together when storing the vertices.
-However, if the neighbor vertices were stored in the traditional in/out-edge double lists method,
-we have to group them twice and then still face the information insufficient problem as we discussed in the previous subsection.
-As for our vertex-centric storage method,
-the index could be added to the storage engine easily as is shown in Figure~\ref{img:data_neighbors},
-where we simply store the key-value pairs that maps the vertex labels to the starting/ending position of the neighbors on disk.
+Consider the data graph in Figure~\ref{img:running_example}.
+One may want to study the following relationship among users.
+For vertex $1$ in the figure,
+no matter how much social media she has published or viewed we could just ignore all of them in this specific problem.
+%% A straightforward idea is to group the neighbor vertices with the same label together when storing the vertices.
+%% However, if the neighbor vertices were stored in the traditional in/out-edge double lists method,
+%% we have to group them twice and then still face the information insufficient problem as we discussed in the previous subsection.
+%% As for our vertex-centric storage method,
+For SeqStor's vertex-centric storage method,
+the index could be added to the storage engine easily as shown in Figure~\ref{img:data_example}.
+These indexes are key-value pairs mapping the vertex labels to the starting/ending position of the neighbors on disk.
 Since it is used to locate only the neighbors of a specific vertex, we refer to this kind of index as \emph{local index}.
 With the help of local index, we could skip all the useless neighbor vertices and only scan the necessary ones.
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width=0.48\textwidth]{img/data_neighbors.pdf}
-  \caption{The vertex-centric storage structure of the celebrity $v_1$ in Figure~\ref{img:celebrity_star}.}\label{img:data_neighbors}
-\end{figure}
+%% \begin{figure}[ht]
+%%   \centering
+%%   \includegraphics[width=0.48\textwidth]{img/data_neighbors.pdf}
+%%   \caption{The vertex-centric storage structure of the celebrity $v_1$ in Figure~\ref{img:celebrity_star}.}\label{img:data_neighbors}
+%% \end{figure}
 
 From a higher perspective, in order to solve a property graph matching problem,
-one need to firstly select a starting vertex in the data graph,
-regardless of the concrete graph matching algorithm whether it is tree based or join based.
+one need to firstly select a root vertex in the data graph.
+%% regardless of the concrete graph matching algorithm whether it is tree based or join based.
 There is no need to scan all the vertices in a billion node data graph if we only care about vertices with the specific labels.
-Just like the local index we discussed above, we could add a global index which contains key-value pairs that maps the labels to the corresponding position on disk (Figure~\ref{img:data_vertices}).
+Just like the local index we discussed above, we could add a global index which contains key-value pairs that maps the labels to the corresponding position on disk (Figure~\ref{img:data_example}).
 
-In summery, for a property graph matching problem, we could quickly jump to the domain of interest with the help of the global index, and then scan and check only the necessary neighbors with the help of our local index.
-After jump to the correct position, all the disk reads are sequential.
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width=0.48\textwidth]{img/data_vertices.pdf}
-  \caption{The storage structure overview of the data graph in Figure~\ref{img:celebrity_star}.}\label{img:data_vertices}
-\end{figure}
+The super-linear index problem of existing work was pointed out by~\cite{DBLP:journals/pvldb/SunWWSL12},
+where indexes grow \emph{super-linearly} with respect to the \emph{edges}.
+In contrast, indexes of SeqStar grows \emph{linearly} with respect to the \emph{vertices}.
+In SeqStar, the length of global index is the length of vertex labels ($l$),
+and the size of local indexes is bound to $l \times n$ ($n$ is the length of vertices).
+%% In summery, for a property graph matching problem, we could quickly jump to the domain of interest with the help of the global index, and then scan and check only the necessary neighbors with the help of our local index.
+%% After jump to the correct position, all the disk reads are sequential.
+%% \begin{figure}[ht]
+%%   \centering
+%%   \includegraphics[width=0.48\textwidth]{img/data_vertices.pdf}
+%%   \caption{The storage structure overview of the data graph in Figure~\ref{img:celebrity_star}.}\label{img:data_vertices}
+%% \end{figure}
 \subsection{Remarks on the Implementation of the Storage Method}\label{sec:storage_iterators}
 For applications that need to perform the two basic operations (visiting vertices and visiting the neighbors),
 we define two iterators as the interface to visit the data graph:
@@ -99,7 +108,7 @@ And we also provide a compact disk format implementing the vertex-centric storag
 Vertices are sorted by their IDs, and we store in/out-degrees as early filters when scanning the vertices.
 Edge labels are stored as integers here, however, bitmap could also be used for higher performance.
 The \textsc{VertexIter} just searches the global index and then visits the disk data sequentially;
-The \text{NeighborIter} scans the neighbors with the help of the local index.
+The \textsc{NeighborIter} scans the neighbors with the help of the local index.
 
 Please note that the vertex-centric storage model is not restricted to this disk format.
 In fact, as long as a storage engine could implement the two iterators efficiently,
