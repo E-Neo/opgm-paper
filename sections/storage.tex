@@ -31,20 +31,17 @@ For real world power-law graphs, where the celebrities or trending topics have a
 %% Multiple edges between $u_1$ and $u_2$ make things even worse.
 %And it would be more complicated if there are more than two edges between $u_1$ and $u_2$ in the pattern graph.
 
-Contrarily, SeqStor's vertex-centric storage keeps the necessary connection information together for graph matching.
-Figure~\ref{img:data_example} shows the logical storage structure for the data graph in Figure~\ref{img:running_example}.
-The specific edge information (direction, types) could be obtained by the position of the stored edge labels, i.e.,
-the upper labels means the direction is pointed from the root and the lower labels means the opposite.
+On the contrarily, SeqStor's vertex-centric storage keeps the necessary connection information together for graph matching.
+Figure~\ref{img:data_example} shows the logical structure for the data graph in Figure~\ref{img:running_example}.
+The specific edge information (direction, types) could be obtained by the stored edge labels, i.e., the top labels associate to the out-edges and the bottom labels associate to the in-edges (Figure~\ref{img:data_example}). 
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=0.5\textwidth]{img/data_example.pdf}
-  \caption{The vertex-centric storage structure of the data graph in Figure~\ref{img:running_example}.}\label{img:data_example}
+  \caption{Vertex-centric graph data storage.}\label{img:data_example}
 \end{figure}
 
-By storing the neighbors in our vertex-centric approach,
-all the necessary information are now stored locally together with the vertices.
-The neighborhood checking process can be accomplished efficiently within a sequential disk scan.
+By using the vertex centric graph data storage, the neighborhood checking process can be accomplished efficiently within a sequential disk scan.
 For $S_1$ in Figure~\ref{img:running_example},
 to check the neighbors of vertex $1$, SeqStar scans the neighbors $2, 3, 5, 6$ and $4, 7, 9$ sequentially.
 No random disk access appears during the whole process.
