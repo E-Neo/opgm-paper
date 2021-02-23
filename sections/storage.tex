@@ -31,7 +31,7 @@ For real world power-law graphs, where the celebrities or trending topics have a
 %% Multiple edges between $u_1$ and $u_2$ make things even worse.
 %And it would be more complicated if there are more than two edges between $u_1$ and $u_2$ in the pattern graph.
 
-On the contrarily, SeqStor's vertex-centric storage keeps the necessary connection information together for graph matching.
+On the contrary, SeqStor's vertex-centric storage keeps the necessary connection information together for graph matching.
 Figure~\ref{img:data_example} shows the logical structure for the data graph in Figure~\ref{img:running_example}.
 The specific edge information (direction, types) could be obtained by the stored edge labels, i.e., the top labels associate to the out-edges and the bottom labels associate to the in-edges (Figure~\ref{img:data_example}).
 
@@ -77,7 +77,7 @@ With the help of local index, we can skip all the unnecessary neighbors and only
 To begin a match, one need to firstly select a root vertex in the data graph.
 %% regardless of the concrete graph matching algorithm whether it is tree based or join based.
 %There is no need to scan all the vertices in a billion node data graph if we only care about vertices with the specific labels.
-%Just like the local index we discussed above, we could add a global index which 
+%Just like the local index we discussed above, we could add a global index which
 To this end, a \emph{global index} is constructed to contain key-value pairs that maps the labels to the corresponding position on disk (Figure~\ref{img:data_example}).
 
 The sizes of indexes in SeqStar are relatively smaller than existing works which have a super-linear index problem~\cite{DBLP:journals/pvldb/SunWWSL12}. The sizes of indexes grow \emph{super-linearly} with respect to the \emph{edges}.
@@ -94,7 +94,7 @@ The size of the global index is the same as the number of vertex labels ($l$). T
 For applications that need to perform the two basic operations (visiting vertices and visiting the neighbors),
 we define two iterators as the interface to visit the data graph:
 \begin{enumerate}[noitemsep]
-\item \textsc{VertexIter} iterates the vertices with the given label, ordered by vertex ID. 
+\item \textsc{VertexIter} iterates the vertices with the given label, ordered by vertex ID\@.
 %Given a vertex label, it iterates through the vertices with the specified label ordered by the ID of vertices;
 \item \textsc{NeighborIter} iterates the neighbors of a given vertex to match a given label. The neighbors are sorted by their IDs.
 
@@ -105,7 +105,7 @@ we define two iterators as the interface to visit the data graph:
 These iterators could be implemented efficiently by using SeqStar's vertex-centric storage model.
 Figure~\ref{img:data_graph} shows the on-disk layout of our vertex-centric storage model.
 Vertices are sorted by their IDs. We store in/out-degrees as early filters when scanning the vertices.
-Edge labels are stored as integers here(alternatively, bitmap could also be used).
+Edge labels are stored as integers here (alternatively, bitmap could also be used).
 The \textsc{VertexIter} searches the global index and then visits the disk data sequentially.
 The \textsc{NeighborIter} scans the neighbors with the help of the local index.
 
@@ -119,6 +119,5 @@ The \textsc{NeighborIter} scans the neighbors with the help of the local index.
   \centering
   \includegraphics[width=0.48\textwidth]{img/data_graph.pdf}
 %  \caption{An I/O efficient property graph storage method that can boost the graph matching process.}
-\caption{On-disk layout of vertex-centric storage model.}
-\label{img:data_graph}
+  \caption{On-disk layout of vertex-centric storage model.}\label{img:data_graph}
 \end{figure}

@@ -1,13 +1,13 @@
-\section{Property Graph Matchinig Engine}\label{sec:match}
-Real world billion-node property graph can easily eat up hundreds of gigabytes,
-apart from that, even more spaces are required to store the intermediate results,
-which makes it financially impossible to solve the realistic property graph matching problem totally in memory.
-However, challenges have to be faced when developing an out-of-core property graph matching engine,
-because of the infamous random disk access problem.
+\section{Property Graph Matching Engine}\label{sec:match}
+%% Real world billion-node property graph can easily eat up hundreds of gigabytes,
+%% apart from that, even more spaces are required to store the intermediate results,
+%% which makes it financially impossible to solve the realistic property graph matching problem totally in memory.
+%% However, challenges have to be faced when developing an out-of-core property graph matching engine,
+%% because of the infamous random disk access problem.
 
-In this section, we present a very interesting contribution based on the vertex-centric storage model that we discussed before.
-We avoid random disk accesses when scanning the huge data graph file,
-and avoid the intermediate results explosion problem by adopting an impressive compression algorithm.
+In this section, we present the property graph match engine of SeqStar.
+Based on the vertex-centric storage engine, SeqStar avoids random disk accesses when scanning the graph data file.
+The intermediate results explosion problem is resolved by adopting an impressive compression algorithm.
 Moreover, we designed an efficient pipeline join method for compressed data,
 and developed a series of optimizations for real world property graph matching problems.
 \input{sections/match_star}
