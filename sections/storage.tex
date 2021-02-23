@@ -90,7 +90,7 @@ The size of the global index is the same as the number of vertex labels ($l$). T
 %%   \includegraphics[width=0.48\textwidth]{img/data_vertices.pdf}
 %%   \caption{The storage structure overview of the data graph in Figure~\ref{img:celebrity_star}.}\label{img:data_vertices}
 %% \end{figure}
-\subsection{Remarks on the Implementation of the Storage Method}\label{sec:storage_iterators}
+\subsection{Storage Iterator}\label{sec:storage_iterators}
 For applications that need to perform the two basic operations (visiting vertices and visiting the neighbors),
 we define two iterators as the interface to visit the data graph:
 \begin{enumerate}[noitemsep]
@@ -106,12 +106,12 @@ Edge labels are stored as integers here, however, bitmap could also be used for 
 The \textsc{VertexIter} just searches the global index and then visits the disk data sequentially;
 The \textsc{NeighborIter} scans the neighbors with the help of the local index.
 
-Note that the vertex-centric storage model is not restricted to this disk format.
-In fact, as long as a storage engine could implement the two iterators efficiently,
-it could implement the vertex-centric storage model well.
-For example, the sorted vertices could be replaced with B-tree to make the insertion/deletion operation easier for dynamic graphs.
+%% Note that the vertex-centric storage model is not restricted to this disk format.
+%% In fact, as long as a storage engine could implement the two iterators efficiently,
+%% it could implement the vertex-centric storage model well.
+%% For example, the sorted vertices could be replaced with B-tree to make the insertion/deletion operation easier for dynamic graphs.
 %% It is also possible to implement the vertex-centric storage model in memory as buffer cache for existing graph databases to achieve better locality.
-Moreover, we are now working on implementing the vertex-centric storage model on top of relational database to embrace the power of the half-century-year-old mature technology.
+%% Moreover, we are now working on implementing the vertex-centric storage model on top of relational database to embrace the power of the half-century-year-old mature technology.
 \begin{figure}[ht]
   \centering
   \includegraphics[width=0.48\textwidth]{img/data_graph.pdf}
