@@ -61,11 +61,11 @@ no matter how much social media she has published or viewed we could just ignore
 %% However, if the neighbor vertices were stored in the traditional in/out-edge double lists method,
 %% we have to group them twice and then still face the information insufficient problem as we discussed in the previous subsection.
 %% As for our vertex-centric storage method,
-For SeqStor's vertex-centric storage method,
-the index could be added to the storage engine easily as shown in Figure~\ref{img:data_example}.
+For SeqStor's vertex-centric storage,
+we can build the index as in Figure~\ref{img:data_example}.
 These indexes are key-value pairs mapping the vertex labels to the starting/ending position of the neighbors on disk.
 Since it is used to locate only the neighbors of a specific vertex, we refer to this kind of index as \emph{local index}.
-With the help of local index, we could skip all the useless neighbor vertices and only scan the necessary ones.
+With the help of local index, we could skip all the unnecessary neighbor vertices and only scan the necessary ones.
 %% \begin{figure}[ht]
 %%   \centering
 %%   \includegraphics[width=0.48\textwidth]{img/data_neighbors.pdf}
