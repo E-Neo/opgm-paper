@@ -3,15 +3,17 @@
 \subsubsection{Environment}
 Most of the experiments were performed on a single machine with two Intel Xeon Processor E5--2699 v4 CPUs, 64 GB of RAM,
 and a 800GB SSD\@.
-Caches were dropped before each experiment to force disk loads.
+Memory caches were dropped before each experiment to force disk loads.
 \subsubsection{Datasets and Queries}
 We use real-world data graphs~\cite{snapnets} listed in Table~\ref{tab:datasets}.
 The datasets come from difference domains of application, and they range in different size.
+The vertices and edges in the datasets are labeled randomly as in~\cite{DBLP:journals/pvldb/MhedhbiS19}.
 
-Queries (Figure~\ref{img:queries}) are selected and edited from existing work~\cite{DBLP:conf/cloud/SerafiniMS17,DBLP:journals/pvldb/MhedhbiS19}.
-The vertex labels are represented by the color and the edge labels are differed by the style of lines.
+The queries (Figure~\ref{img:queries}) are selected and edited from existing work~\cite{DBLP:conf/cloud/SerafiniMS17,DBLP:journals/pvldb/MhedhbiS19}.
+The labels of vertices and edges are tagged randomly,
+and they are represented by the color and the style of lines in Figure~\ref{img:queries}.
 The queries we choose represent different topologies: trees, chains, and cyclic graphs.
-$q_9$ --- $q_{12}$ are queries with mult-edges
+$q_9$ --- $q_{12}$ are queries with multi-edges.
 \begin{table}
   \caption{Datasets}\label{tab:datasets}
   \begin{tabular}{lrrr}
