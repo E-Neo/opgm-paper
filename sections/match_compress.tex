@@ -1,11 +1,14 @@
 \subsection{Compressed Intermediate Results Wrote Sequentially}\label{sec:match_compress}
-As our experiment shows that a small graph with $10^5$ edges could easily results in $10^{10}$ rows of matching results (Section~\ref{sec:experiments}).
-Even though we could use stars and auxiliary optimizations to drop out useless matching results as soon as possible, the intermediate results could still be very large.
-Figure~\ref{img:compress_example} illustrates this phenomenon that a small graph with only 6 vertices could result in 12 rows (48 vertices) of matching results.
-In the table we could find that $u_1$ and $u_4$ always match the same vertices $v_2$ and $v_1$,
-whereas the matching results of $u_2$ and $u_3$ are permutations of $v_3, v_4, v_5, v_6$.
-\emph{The key of the matching result explosion problem is the explosive permutation}.
-In order to address this problem, we avoid the permutation by postpone the Cartesian production when matching stars, which is similar to VCBC~\cite{DBLP:journals/pvldb/QiaoZC17} but we focus on the compression of property star's matching results for out-of-core systems.
+The matching results grow exponentially with respect to the size of the graph data.
+Therefore the intermediate results could still be very large even though we use stars to filter on the data.
+To address the problem, SeqStar uses a novel compression algorithm with the compression ratio as high as $10^{10}$ (\S\ref{sec:experiments_compress}).
+% As our experiment shows that a small graph with $10^5$ edges could easily results in $10^{10}$ rows of matching results (Section~\ref{sec:experiments}).
+%% Even though we could use stars and auxiliary optimizations to drop out useless matching results as soon as possible, the intermediate results could still be very large.
+%% Figure~\ref{img:compress_example} illustrates this phenomenon that a small graph with only 6 vertices could result in 12 rows (48 vertices) of matching results.
+%% In the table we could find that $u_1$ and $u_4$ always match the same vertices $v_2$ and $v_1$,
+%% whereas the matching results of $u_2$ and $u_3$ are permutations of $v_3, v_4, v_5, v_6$.
+%% \emph{The key of the matching result explosion problem is the explosive permutation}.
+%% In order to address this problem, we avoid the permutation by postpone the Cartesian production when matching stars, which is similar to VCBC~\cite{DBLP:journals/pvldb/QiaoZC17} but we focus on the compression of property star's matching results for out-of-core systems.
 
 Consider Figure~\ref{img:compress_example}, there is a symmetry with $u_2$ and $u_3$.
 We say that they have the same \textsc{NeighborInfo} or they form a \textsc{NeighborInfo} equivalence class, as they have the same label and same connections to the root $u_4$,
