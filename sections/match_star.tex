@@ -1,4 +1,4 @@
-\subsection{Using Stars to Sequentially Scan the Huge Graph at Most Once}\label{sec:match_star}
+\subsection{Using Stars to Sequentially Scan the Data Graph at Most Once}\label{sec:match_star}
 Generally speaking, there are two kinds of graph isomorphism algorithm,
 differing on whether intermediate results are materialized.
 The first is the backtracking tree-searching method~\cite{DBLP:journals/jacm/Ullmann76,DBLP:journals/pvldb/LeeHKL12,DBLP:conf/sigmod/HanLL13,DBLP:conf/sigmod/KimLBHLKJ16},
@@ -49,8 +49,8 @@ Our experiment shows that this enhancement could reduce the intermediate results
 %% Moreover, we made further contributions to keep the matching results even smaller (Section~\ref{sec:match_compress} and Section~\ref{sec:match_optimize}).
 
 Some existing works also adopt star-like structures as their basic matching unit~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:journals/pvldb/LaiQLC15},
-however, SeqStar takes further steps in three different ways:
-\begin{enumerate}[noitemsep,leftmargin=*]
+however, SeqStar takes further steps in two different ways:
+\begin{enumerate}[noitemsep,leftmargin=0pt,align=left,labelwidth=\parindent]
 \item SeqStar adopts the property graph model (Section~\ref{sec:background}) rather than the simple graph model ubiquitous among academical paper.
   A simple graph can be viewed as a special case of a property graph,
   which ignores the labels, multi-edges, or even the direction of edges.
@@ -69,7 +69,11 @@ however, SeqStar takes further steps in three different ways:
   \end{figure}
   The edge $u_1 \rightarrow u_4$ is dropped in $S_2'$.
   Therefore, unnecessary matchings such as vertex $10$ will then be matched (Figure~\ref{img:running_example}).
+  And the problem is more severe for complex patterns where more edges will be dropped.
   Seqstar addresses the problem by keeping the original pattern graph unchanged, and removing vertices/edges on a copy of the pattern (Algorithm~\ref{alg:decompose_stars}).
+  The algorithm uses a heuristic function $f(u) = \frac{\deg(u) + |\psi(u)|}{\operatorname{freq}(u.label)}$ to select roots,
+  where $\deg(u)$ is the degree of $u$, $|\psi(u)|$ is the number of constraints related to $u$ ($u_2 > u_1$, $u_3 > u_1$, $u_4 < 8$ in Figure~\ref{img:running_example}),
+  and $\operatorname{freq}(u.label)$ is the frequency of $u$'s label in the data graph.
   %% Consider the pattern graph in Figure~\ref{img:star_decomposition},
   %% suppose that $u_1$, $u_2$ and $u_3$ are selected as the roots,
   %% existing decomposition method would result in three stars with 3, 2 and 1 neighbor\@(s)
@@ -88,15 +92,6 @@ however, SeqStar takes further steps in three different ways:
   %%   \includegraphics[width=0.48\textwidth]{img/star_decomposition.pdf}
   %%   \caption{Stars decomposed from the same pattern graph using different algorithms.}\label{img:star_decomposition}
   %% \end{figure}
-\item As the real-world billion node graphs are so large that it is preferable to scan it only once in a streaming style when solving a property graph matching problem.
-  However, it is not a simple task because multiple stars has to be matched in a single sequential scan,
-  the context switch cost and the intermediate result write cost must be minimized.
-  For the context switch cost, it is strongly coupled with the underlying storage method of the data graph.
-  Thanks to the elegant design of our vertex-centric storage model,
-  which is able to match stars in a sequential run given a root label,
-  we could group the stars with the same root label together and match them at the same time when iterating through \textsc{VertexIter}.
-  For the matching result write cost, we developed a compression algorithm for star's matching results that could be wrote sequentially (Section~\ref{sec:match_compress}).
-  As a result, we could scan the huge data graph only once and all the I/Os are sequential.
 \end{enumerate}
 \begin{algorithm}[ht]
   \caption{Star Decomposition}\label{alg:decompose_stars}
@@ -105,7 +100,7 @@ however, SeqStar takes further steps in three different ways:
   \SetKwFunction{Star}{\textsc{Star}}
   \SetKwFunction{RemoveVertex}{\textsc{RemoveVertex}}
   \Fn{\DecomposeStars{$p$}}{
-    $results \leftarrow \emptyset$\;
+    $stars \leftarrow \emptyset$\;
     $p' \leftarrow p$\;
     $R \leftarrow \{\max_{u \in V(p)}f(u)\}$\;
     \While{$R \neq \emptyset$}{
@@ -114,8 +109,22 @@ however, SeqStar takes further steps in three different ways:
       $R \leftarrow R \cup \{ leaf \mid leaf \text{ is adjacent to } root \text{ in } p'\}$\;
       \RemoveVertex{$p'$, $root$}\;
       $R \leftarrow R \setminus \{ u \mid u \in p' \land \deg{u} = 0 \}$\;
-      $results \leftarrow results \cup \{$ \Star{$p$, $root$} $\}$\;
+      $stars \leftarrow stars \cup \{$ \Star{$p$, $root$} $\}$\;
     }
-    \Return{$results$}
+    \Return{$stars$}
   }
 \end{algorithm}
+
+Since the real-world graphs are so large that it is preferable to scan it only once when solving a property graph matching problem.
+SeqStar solves the problem by grouping stars with the same root label together,
+and scans these stars together by iterating through the \textsc{VertexIter}.
+For each scanned vertex, SeqStar visits the \textsc{NeighborIter} to check the neighbors and stores the intermediate results for these stars.
+Moreover, SeqStar is able to find isomorphism among stars and avoids unnecessary star matching (\S\ref{sec:match_optimize}).
+%% However, it is not a simple task to match multiple stars in a single sequential scan,
+%% the context switch cost and the intermediate result write cost must be minimized.
+%% For the context switch cost, it is strongly coupled with the underlying storage method of the data graph.
+%% Thanks to the elegant design of our vertex-centric storage model,
+%% which is able to match stars in a sequential run given a root label,
+%% we could group the stars with the same root label together and match them at the same time when iterating through \textsc{VertexIter}.
+%% For the matching result write cost, we developed a compression algorithm for star's matching results that could be wrote sequentially (Section~\ref{sec:match_compress}).
+%% As a result, we could scan the huge data graph only once and all the I/Os are sequential.
