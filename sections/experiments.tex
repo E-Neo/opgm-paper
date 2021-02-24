@@ -42,15 +42,18 @@ The preprocessing incurs a external sort on the original graph data to generate 
 The cost is $\mathcal{O}(n \log n)$ where n is the size of the unsorted graph data.
 We use 32-bit integers to store the vertex IDs, and 16-bit integers to store the vertex/edge labels.
 As is shown in Figure~\ref{img:exp_preprocessing}, the preprocessing time grows linearly with respect to the size of graph data.
-In fact, the preprocessing time of the vertex-centric storage is significantly smaller than the execution time of complex queries.
+In fact, the preprocessing time of the vertex-centric storage is significantly smaller than the execution time of complex queries (\S\ref{sec:experiments_compare}).
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=0.4\textwidth]{img/exp_preprocessing.pdf}
   \caption{Preprocessing time of SeqStar.}\label{img:exp_preprocessing}
 \end{figure}
-\subsection{Comparative Performance}
-We compare the overall performance of SeqStar against Graphflow~\cite{DBLP:journals/pvldb/MhedhbiS19} and Neo4j.
+\subsection{Comparative Performance}\label{sec:experiments_compare}
+SeqStar is studied in two scenarios:
+(1) The intermediate result cache is turned off and the star matching process has to scan the data graph on disk in each experiment;
+(2) The intermediate result cache is turned on such that SeqStar is able to join on the SuperRows directly.
+And we compare the overall performance of SeqStar against Graphflow~\cite{DBLP:journals/pvldb/MhedhbiS19} and Neo4j.
 
 Graphflow is the state-of-the-art in-memory subgraph querying system,
 and it is the fastest baseline we are aware of.
