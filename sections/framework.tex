@@ -23,7 +23,7 @@ which describes the pattern graph in Figure~\ref{img:running_example}:
   \begin{Verbatim}[fontsize=\small]
     MATCH (u1:Person)-[:FOLLOWS]->(u2:Person)-[:FOLLOWS]->(u1),
           (u1)-[:FOLLOWS]->(u3:Person)-[:FOLLOWS]->(u1),
-          (u1)-[:PUBLISHES]->(u4:Media),
+          (u1)-[:REPOSTS]->(u4:Media),
           (u2)-[:LIKES]->(u4)<-[:LIKES]-(u3)
     WHERE u2 > u1 AND u3 > u1 AND u4 < 8
   \end{Verbatim}
