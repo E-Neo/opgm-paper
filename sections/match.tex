@@ -5,11 +5,12 @@
 %% However, challenges have to be faced when developing an out-of-core property graph matching engine,
 %% because of the infamous random disk access problem.
 
-In this section, we present the property graph match engine of SeqStar.
-Based on the vertex-centric storage engine, SeqStar avoids random disk accesses when scanning the graph data file.
-The intermediate results explosion problem is resolved by adopting an impressive compression algorithm.
-Moreover, we designed an efficient pipeline join method for compressed data,
-and developed a series of optimizations for real world property graph matching problems.
+%In this section, we present the property graph match engine of SeqStar.
+%Based on the vertex-centric storage engine, SeqStar avoids random disk accesses when scanning the graph data file.
+
+SeqStar's graph matching engine is based on the vertex-centric storage to avoid the random disk seeks.
+The intermediate results explosion problem is resolved by adopting a compression algorithm which postpones Cartesian product and digs equivalence classes.
+Moreover, an efficient pipeline join method can work on compressed data.
 \input{sections/match_star}
 \input{sections/match_compress}
 \input{sections/match_join}
