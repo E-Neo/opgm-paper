@@ -50,10 +50,14 @@ In fact, the preprocessing time of the vertex-centric storage is significantly s
   \caption{Preprocessing time of SeqStar.}\label{img:exp_preprocessing}
 \end{figure}
 \subsection{Comparative Performance}
-We compare the overall performance of SeqStar against Graphflow~\cite{DBLP:journals/pvldb/MhedhbiS19},
-which is the state-of-the-art in-memory subgraph querying system.
-Graphflow is a JVM based system, and we set the maximum size of the JVM heap to 60GB to let it make full use of main memory.
+We compare the overall performance of SeqStar against Graphflow~\cite{DBLP:journals/pvldb/MhedhbiS19} and Neo4j.
 
+Graphflow is the state-of-the-art in-memory subgraph querying system,
+and it is the fastest baseline we are aware of.
+Graphflow is a JVM based system, and we set the maximum size of the JVM heap to 60GB to let it make full use of main memory.
+However Graphflow does not support queries with multi-edges, i.e., $q_9$ --- $q_{12}$,
+and it will report fake results for these queries\footnote{Graphflow will report matchings even the data does not contain multi-edges.}.
+Therefore we use only $q_1$ --- $q_8$ to compare with Graphflow.
 \begin{figure*}[ht]
   \centering
   \includegraphics[width=\textwidth]{img/exp_compare.pdf}
