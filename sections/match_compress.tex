@@ -3,7 +3,37 @@ The matching results grow exponentially with respect to the size of the graph da
 %% Consider the matching problem in Figure~\ref{img:running_example},
 %% $S_1$ will generate 28 rows of intermediate results and $S_2$ will generate 8 rows.
 %% And we need $4 \times (28 + 8) = 144$ integers to store them, which is larger than the data graph.
-To compress the intermediate data, SeqStar postpones the costly Cartesian product and analyzes equivalence classes in the stars.
+Inspired by the vertex-cover based compression algorithm~\cite{DBLP:journals/pvldb/QiaoZC17},
+SeqStar postpones the costly Cartesian product to reduce the size of intermediate results.
+Moreover, we design an on-disk layout that is able to write the compressed data sequentially.
+
+Two techniques are used to compress the intermediate results:
+(1) Like VCBC, SeqStar avoids the Cartesian product in the intermediate results.
+For each vertex $v$ that will match the root of a star $S$,
+SeqStar stores the matched vertices of each neighbor of $v$ in $S$ together as an \emph{image set}.
+They are then stored together as a \emph{SuperRow}.
+For example, there are two SuperRows in $T_2$ (Figure~\ref{img:running_example}),
+each contains a root vertex and two image sets.
+(2) SeqStar analyzes the vertices in stars and use equivalence classes to avoid unnecessary storage.
+SeqStar first groups the leaf vertices by label.
+It then studies the connections between the leaves and the root.
+Vertices have the same edge properties (direction, labels) and filtering function are grouped together as a \emph{neighbor equivalence class},
+e.g., $u_2$ and $u_3$ in Figure~\ref{img:running_example}.
+The matching results of the vertices are the same, and SeqStar stores their image set only once.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.45\textwidth]{img/compress.pdf}
+  \caption{On-disk layout of the compressed intermediate results.}\label{img:compress}
+\end{figure}
+
+The on-disk layout of SuperRows is shown in Figure~\ref{img:compress}.
+In each SuperRow, the matched vertices are stored consecutively.
+Metadata $(pos_i, #eqv_i)$ are used to store the image sets for each neighbor equivalence class.
+During the star matching process, matched vertices from the \textsc{NeighborIter} will be appended to the SuperRow file.
+
+%% VCBC groups the matching results by the vertex-cover and stores the matched vertices in \emph{image sets}.
+%% The original data can be restored by doing Cartesian product on the image sets.
 %% As a result, only 16 integers are required
 %% The compression ratio of the algorithm is as high as $10^{10}$ (\S\ref{sec:experiments_compress}).
 
@@ -36,8 +66,3 @@ To compress the intermediate data, SeqStar postpones the costly Cartesian produc
 %% If we want to scan the neighbors only once, we should be able to append the neighbor vertex to the corresponding image set, however, the variable-length image sets make it hard to address these problems.
 %% To solve this dilemma, for each SuperRow, we pre-allocate enough space based on the statistical information in the data graph, i.e., the size of neighbors with the \textsc{NeighborInfo}'s label.
 %% Thus the vertices could be scanned only once and wrote to the corresponding image set sequentially.
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width=0.35\textwidth]{img/compress.pdf}
-  \caption{The disk format of our compressed star matching results.}\label{img:compress}
-\end{figure}
