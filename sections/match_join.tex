@@ -1,10 +1,4 @@
 \subsection{Pipeline Join on Compressed Data}\label{sec:match_join}
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width=0.32\textwidth]{img/compress.pdf}
-  \caption{The disk format of our compressed star matching results.}\label{img:compress}
-\end{figure}
-
 By far, we've got all the compressed matching results for stars and it's time to join them to obtain the final answer.
 A simple and straightforward method is the binary join, however, intermediate join results have to be materialized by doing so.
 Even though the compression ratio of star matching result is very impressive,

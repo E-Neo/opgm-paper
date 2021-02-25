@@ -1,7 +1,12 @@
 \subsection{Compressed Intermediate Results Wrote Sequentially}\label{sec:match_compress}
 The matching results grow exponentially with respect to the size of the graph data.
-Therefore the intermediate results could still be very large even though we use stars to filter on the data.
-To address the problem, SeqStar uses a novel compression algorithm with the compression ratio as high as $10^{10}$ (\S\ref{sec:experiments_compress}).
+%% Consider the matching problem in Figure~\ref{img:running_example},
+%% $S_1$ will generate 28 rows of intermediate results and $S_2$ will generate 8 rows.
+%% And we need $4 \times (28 + 8) = 144$ integers to store them, which is larger than the data graph.
+To compress the intermediate data, SeqStar postpones the costly Cartesian product and analyzes equivalence classes in the stars.
+%% As a result, only 16 integers are required
+%% The compression ratio of the algorithm is as high as $10^{10}$ (\S\ref{sec:experiments_compress}).
+
 % As our experiment shows that a small graph with $10^5$ edges could easily results in $10^{10}$ rows of matching results (Section~\ref{sec:experiments}).
 %% Even though we could use stars and auxiliary optimizations to drop out useless matching results as soon as possible, the intermediate results could still be very large.
 %% Figure~\ref{img:compress_example} illustrates this phenomenon that a small graph with only 6 vertices could result in 12 rows (48 vertices) of matching results.
@@ -10,24 +15,29 @@ To address the problem, SeqStar uses a novel compression algorithm with the comp
 %% \emph{The key of the matching result explosion problem is the explosive permutation}.
 %% In order to address this problem, we avoid the permutation by postpone the Cartesian production when matching stars, which is similar to VCBC~\cite{DBLP:journals/pvldb/QiaoZC17} but we focus on the compression of property star's matching results for out-of-core systems.
 
-Consider Figure~\ref{img:compress_example}, there is a symmetry with $u_2$ and $u_3$.
-We say that they have the same \textsc{NeighborInfo} or they form a \textsc{NeighborInfo} equivalence class, as they have the same label and same connections to the root $u_4$,
-and we can be sure that the matching results of $u_2$ and $u_3$ are always same.
-The \textsc{NeighborInfo} of $u_1$ is different from $u_2$ because $u_1$ has more edges connected to the root.
-By iterating through the neighbors of $v_1$, we can find the image set for each vertex in the pattern.
-Instead of permuting the matching vertices, we compress the matching result by just writing down the image sets of each \textsc{NeighborInfo} equivalence class as is shown in the right bottom corner in Figure~\ref{img:compress_example}.
-And Figure~\ref{img:compress} gives a straightforward disk format to store the compressed star matching results.
-The final results can be retrieved by doing Cartesian product on the image sets and keeping the unique vertices.
-We called the compressed data as \emph{SuperRow} since one SuperRow could generate enormous tuples by Cartesian production.
+%% Consider Figure~\ref{img:compress_example}, there is a symmetry with $u_2$ and $u_3$.
+%% We say that they have the same \textsc{NeighborInfo} or they form a \textsc{NeighborInfo} equivalence class, as they have the same label and same connections to the root $u_4$,
+%% and we can be sure that the matching results of $u_2$ and $u_3$ are always same.
+%% The \textsc{NeighborInfo} of $u_1$ is different from $u_2$ because $u_1$ has more edges connected to the root.
+%% By iterating through the neighbors of $v_1$, we can find the image set for each vertex in the pattern.
+%% Instead of permuting the matching vertices, we compress the matching result by just writing down the image sets of each \textsc{NeighborInfo} equivalence class as is shown in the right bottom corner in Figure~\ref{img:compress_example}.
+%% And Figure~\ref{img:compress} gives a straightforward disk format to store the compressed star matching results.
+%% The final results can be retrieved by doing Cartesian product on the image sets and keeping the unique vertices.
+%% We called the compressed data as \emph{SuperRow} since one SuperRow could generate enormous tuples by Cartesian production.
+%% \begin{figure}[ht]
+%%   \centering
+%%   \includegraphics[width=0.53\textwidth]{img/compress_example.pdf}
+%%   \caption{A small graph could results in enormous matching results.}\label{img:compress_example}
+%% \end{figure}
+
+%% However, there are still two challenges to be faced in practice:
+%% 1. In real-world property graphs, as a celebrity vertex could have millions of neighbors, it could become a bottleneck if we have to scan the neighbors multiple times when matching a star;
+%% 2. The SuperRows should be written sequentially to reduce the I/O cost.
+%% If we want to scan the neighbors only once, we should be able to append the neighbor vertex to the corresponding image set, however, the variable-length image sets make it hard to address these problems.
+%% To solve this dilemma, for each SuperRow, we pre-allocate enough space based on the statistical information in the data graph, i.e., the size of neighbors with the \textsc{NeighborInfo}'s label.
+%% Thus the vertices could be scanned only once and wrote to the corresponding image set sequentially.
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=0.53\textwidth]{img/compress_example.pdf}
-  \caption{A small graph could results in enormous matching results.}\label{img:compress_example}
+  \includegraphics[width=0.35\textwidth]{img/compress.pdf}
+  \caption{The disk format of our compressed star matching results.}\label{img:compress}
 \end{figure}
-
-However, there are still two challenges to be faced in practice:
-1. In real-world property graphs, as a celebrity vertex could have millions of neighbors, it could become a bottleneck if we have to scan the neighbors multiple times when matching a star;
-2. The SuperRows should be written sequentially to reduce the I/O cost.
-If we want to scan the neighbors only once, we should be able to append the neighbor vertex to the corresponding image set, however, the variable-length image sets make it hard to address these problems.
-To solve this dilemma, for each SuperRow, we pre-allocate enough space based on the statistical information in the data graph, i.e., the size of neighbors with the \textsc{NeighborInfo}'s label.
-Thus the vertices could be scanned only once and wrote to the corresponding image set sequentially.

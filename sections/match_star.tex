@@ -1,25 +1,15 @@
-\subsection{Using Stars to Sequentially Scan the Data Graph at Most Once}\label{sec:match_star}
-Generally speaking, there are two kinds of graph isomorphism algorithm,
-differing on whether intermediate results are materialized.
-The first is the backtracking tree-searching method~\cite{DBLP:journals/jacm/Ullmann76,DBLP:journals/pvldb/LeeHKL12,DBLP:conf/sigmod/HanLL13,DBLP:conf/sigmod/KimLBHLKJ16},
-which does not generate intermediate results.
-However, tree-searching algorithms are prone to the random disk access problem since the vertices are scattered among the disk.
-The second is the join-based algorithm~\cite{DBLP:journals/pvldb/LaiQLC15,DBLP:journals/pvldb/QiaoZC17,DBLP:journals/pvldb/SunWWSL12,DBLP:journals/pvldb/MhedhbiS19},
-which decomposes the pattern graph into smaller matching units and materialize the intermediate results.
-The final result is obtained by joining on these intermediate results.
-In practice, the intermediate results contain valuable information and are cached for queries issued afterward.
-Based on these observations, SeqStar adopts the join-based approach.
+\subsection{Star Decomposition and Matching}\label{sec:match_star}
+%% Generally speaking, there are two kinds of graph isomorphism algorithm,
+%% differing on whether intermediate results are materialized.
+%% The first is the backtracking tree-searching method~\cite{DBLP:journals/jacm/Ullmann76,DBLP:journals/pvldb/LeeHKL12,DBLP:conf/sigmod/HanLL13,DBLP:conf/sigmod/KimLBHLKJ16},
+%% which does not generate intermediate results.
+%% However, tree-searching algorithms are prone to the random disk access problem since the vertices are scattered among the disk.
+%% The second is the join-based algorithm~\cite{DBLP:journals/pvldb/LaiQLC15,DBLP:journals/pvldb/QiaoZC17,DBLP:journals/pvldb/SunWWSL12,DBLP:journals/pvldb/MhedhbiS19},
+%% which decomposes the pattern graph into smaller matching units and materialize the intermediate results.
+%% The final result is obtained by joining on these intermediate results.
+%% In practice, the intermediate results contain valuable information and are cached for queries issued afterward.
+%% Based on these observations, SeqStar adopts the join-based approach.
 
-The most fundamental problem of a graph matching algorithm is to determine the basic matching unit.
-Edges are the simplest matching units.
-However, edges do not contain many useful filtering information such as degrees.
-Many unnecessary results are then included intermediate results and result in costly join operations.
-To avoid excessive joins, more complex structures i.e.,
-frequent subgraphs, multi-hop edges, or cliques are used as matching units~\cite{DBLP:conf/sigmod/HeS08,DBLP:conf/edbt/ZhangLY09,DBLP:journals/pvldb/QiaoZC17}.
-However, these algorithms rely on super-linear indices~\cite{DBLP:journals/pvldb/SunWWSL12}.
-To solve the dilemma, we make a balance by choosing stars as our basic unit.
-And our star decomposition algorithm is enhanced such that the stars keep as much filtering information as possible.
-Our experiment shows that this enhancement could reduce the intermediate results by up to $43\%$ of the existing works.
 
 %% Because of the intrinsic poor locality of graphs,
 %% tree-based algorithms would incur incredible random disk accesses when jumping between the vertices scattered among the disk.
@@ -48,32 +38,35 @@ Our experiment shows that this enhancement could reduce the intermediate results
 %% which means the matching results of a star have a predictable smaller size.
 %% Moreover, we made further contributions to keep the matching results even smaller (Section~\ref{sec:match_compress} and Section~\ref{sec:match_optimize}).
 
-Some existing works also adopt star-like structures as their basic matching unit~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:journals/pvldb/LaiQLC15},
-however, SeqStar takes further steps in two different ways:
-\begin{enumerate}[noitemsep,leftmargin=0pt,align=left,labelwidth=\parindent]
-\item SeqStar adopts the property graph model (Section~\ref{sec:background}) rather than the simple graph model ubiquitous among academical paper.
-  A simple graph can be viewed as a special case of a property graph,
-  which ignores the labels, multi-edges, or even the direction of edges.
-  However, real-world applications of simple graphs are very limited because of the information they dropped out.
-  It is not easy to make a simple graph matching algorithm to solve the property graph matching problem.
-  For one thing, it is a hard engineering problem, because the traditional underlying graph storage method is not suitable for property graphs (Section~\ref{sec:storage}).
-  For another, many existing work rely on the perfect isotropic properties of a simple graph to operate and optimize their algorithms~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/QiaoZC17}.
-\item SeqStar uses a novel pattern decomposition algorithm that is able to preserve as much matching information as possible.
-  However, existing decomposition methods may lose filtering information and result in gigantic unnecessary intermediate results.
-  Consider the pattern graph in Figure~\ref{img:running_example}, in which $u_1$ and $u_4$ are selected as the roots.
-  Existing decomposition algorithms~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:journals/pvldb/LaiQLC15} will generate two stars as shown in Figure~\ref{img:stwig}
-  \begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.35\textwidth]{img/stwig.pdf}
-    \caption{Stars generated by existing algorithms.}\label{img:stwig}
-  \end{figure}
-  The edge $u_1 \rightarrow u_4$ is dropped in $S_2'$.
-  Therefore, unnecessary matchings such as vertex $10$ will then be matched (Figure~\ref{img:running_example}).
-  And the problem is more severe for complex patterns where more edges will be dropped.
-  Seqstar addresses the problem by keeping the original pattern graph unchanged, and removing vertices/edges on a copy of the pattern (Algorithm~\ref{alg:decompose_stars}).
-  The algorithm uses a heuristic function $f(u) = \frac{\deg(u) + |\psi(u)|}{\operatorname{freq}(u.label)}$ to select roots,
-  where $\deg(u)$ is the degree of $u$, $|\psi(u)|$ is the number of constraints related to $u$ ($u_2 > u_1$, $u_3 > u_1$, $u_4 < 8$ in Figure~\ref{img:running_example}),
-  and $\operatorname{freq}(u.label)$ is the frequency of $u$'s label in the data graph.
+%% Some existing works also adopt star-like structures as their basic matching unit~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:journals/pvldb/LaiQLC15},
+%% however, SeqStar takes further steps in two different ways:
+%% \begin{enumerate}[noitemsep,leftmargin=0pt,align=left,labelwidth=\parindent]
+%% \item SeqStar adopts the property graph model (Section~\ref{sec:background}) rather than the simple graph model ubiquitous among academical paper.
+%%   A simple graph can be viewed as a special case of a property graph,
+%%   which ignores the labels, multi-edges, or even the direction of edges.
+%%   However, real-world applications of simple graphs are very limited because of the information they dropped out.
+%%   It is not easy to make a simple graph matching algorithm to solve the property graph matching problem.
+%%   For one thing, it is a hard engineering problem, because the traditional underlying graph storage method is not suitable for property graphs (Section~\ref{sec:storage}).
+%%   For another, many existing work rely on the perfect isotropic properties of a simple graph to operate and optimize their algorithms~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/QiaoZC17}.
+SeqStar uses a novel star decomposition algorithm that is able to preserve as much matching information as possible.
+On top of the vertex-centric storage engine, SeqStar reduces the I/O cost by analyzing star isomorphism and scanning the graph data sequentially only once.
+
+Some existing works also adopt star-like structures~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:journals/pvldb/LaiQLC15},
+however, they drop out valuable filtering information of stars and result in unnecessary intermediate results.
+Consider the pattern graph in Figure~\ref{img:running_example}, in which $u_1$ and $u_4$ are selected as the roots.
+Existing decomposition algorithms~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:journals/pvldb/LaiQLC15} will generate two stars as shown in Figure~\ref{img:stwig}.
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.35\textwidth]{img/stwig.pdf}
+  \caption{Stars generated by existing algorithms.}\label{img:stwig}
+\end{figure}
+The edge $u_1 \rightarrow u_4$ is dropped in $S_2'$.
+Therefore, unnecessary matchings such as vertex $10$ will then be matched (Figure~\ref{img:running_example}).
+And the problem is more severe for complex patterns where more edges will be dropped.
+Seqstar addresses the problem by keeping the original pattern graph unchanged, and removing vertices/edges on a copy of the pattern (Algorithm~\ref{alg:decompose_stars}).
+The algorithm uses a heuristic function $f(u) = \frac{\deg(u) + |\psi(u)|}{\operatorname{freq}(u.label)}$ to select roots,
+where $\deg(u)$ is the degree of $u$, $|\psi(u)|$ is the number of constraints related to $u$ ($u_2 > u_1$, $u_3 > u_1$, $u_4 < 8$ in Figure~\ref{img:running_example}),
+and $\operatorname{freq}(u.label)$ is the frequency of $u$'s label in the data graph.
   %% Consider the pattern graph in Figure~\ref{img:star_decomposition},
   %% suppose that $u_1$, $u_2$ and $u_3$ are selected as the roots,
   %% existing decomposition method would result in three stars with 3, 2 and 1 neighbor\@(s)
@@ -92,7 +85,7 @@ however, SeqStar takes further steps in two different ways:
   %%   \includegraphics[width=0.48\textwidth]{img/star_decomposition.pdf}
   %%   \caption{Stars decomposed from the same pattern graph using different algorithms.}\label{img:star_decomposition}
   %% \end{figure}
-\end{enumerate}
+%% \end{enumerate}
 \begin{algorithm}[ht]
   \caption{Star Decomposition}\label{alg:decompose_stars}
   \SetKwFunction{DecomposeStars}{\textsc{DecomposeStars}}
@@ -115,11 +108,29 @@ however, SeqStar takes further steps in two different ways:
   }
 \end{algorithm}
 
-Since the real-world graphs are so large that it is preferable to scan it only once when solving a property graph matching problem.
-SeqStar solves the problem by grouping stars with the same root label together,
-and scans these stars together by iterating through the \textsc{VertexIter}.
-For each scanned vertex, SeqStar visits the \textsc{NeighborIter} to check the neighbors and stores the intermediate results for these stars.
-Moreover, SeqStar is able to find isomorphism among stars and avoids unnecessary star matching (\S\ref{sec:match_optimize}).
+Given a star $S$, SeqStar first seeks the \textsc{VertexIter} by searching the global index of the storage engine.
+For each vertex $v$ in \textsc{VertexIter},
+SeqStar checks the neighbors of $v$ by visiting the \textsc{NeighborIter}.
+Since the iterators will only incur sequential disk accesses,
+the star matching process avoids the random disk access problem.
+
+SeqStar adopts two techniques to reduce the I/O cost further:
+(1) SeqStar analyzes the isomorphism among the stars to avoid redundant I/Os.
+%% Some pattern may generate isomorphic stars, e.g., a triangle where each vertex has an edge point in and out.
+%% Though the general graph isomorphism problem is NP complete,
+%% the isomorphism of stars are much easier to check.
+We define an order for the vertices in a star based the vertex labels,
+and the isomorphism among stars can be checked by comparing the sorted stars.
+Isomorphic stars have the same matching results, and SeqStar will only match once for all.
+(2) SeqStar groups stars with the same vertex label together,
+and matches them in a single \textsc{VertexIter}.
+Therefore, the graph data will be scanned only once.
+
+%% Since the real-world graphs are so large that it is preferable to scan it only once when solving a property graph matching problem.
+%% SeqStar solves the problem by grouping stars with the same root label together,
+%% and scans these stars together by iterating through the \textsc{VertexIter}.
+%% For each scanned vertex, SeqStar visits the \textsc{NeighborIter} to check the neighbors and stores the intermediate results for these stars.
+%% Moreover, SeqStar is able to find isomorphism among stars and avoids unnecessary star matching (\S\ref{sec:match_optimize}).
 %% However, it is not a simple task to match multiple stars in a single sequential scan,
 %% the context switch cost and the intermediate result write cost must be minimized.
 %% For the context switch cost, it is strongly coupled with the underlying storage method of the data graph.

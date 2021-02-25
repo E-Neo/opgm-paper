@@ -2,6 +2,18 @@
 Despite the fact that general property graph matching problem is seldom discussed in previous works,
 simple graph matching has been widely studied.
 We survey these relevant work in this section.
+
+The most fundamental problem of a graph matching algorithm is to determine the basic matching unit.
+Edges are the simplest matching units.
+However, edges do not contain many useful filtering information such as degrees.
+Many unnecessary results are then included intermediate results and result in costly join operations.
+To avoid excessive joins, more complex structures i.e.,
+frequent subgraphs, multi-hop edges, or cliques are used as matching units~\cite{DBLP:conf/sigmod/HeS08,DBLP:conf/edbt/ZhangLY09,DBLP:journals/pvldb/QiaoZC17}.
+However, these algorithms rely on super-linear indices~\cite{DBLP:journals/pvldb/SunWWSL12}.
+To solve the dilemma, we make a balance by choosing stars as our basic unit.
+And our star decomposition algorithm is enhanced such that the stars keep as much filtering information as possible.
+Our experiment shows that this enhancement could reduce the intermediate results by up to $43\%$ of the existing works.
+
 \subsection*{In-memory Methods}
 Most of the early work assumes that the data graph and indices are fit in the main memory of a single machine.
 Sparked by Ullmann's backtracking algorithm~\cite{DBLP:journals/jacm/Ullmann76},
