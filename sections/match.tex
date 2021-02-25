@@ -9,8 +9,8 @@
 %Based on the vertex-centric storage engine, SeqStar avoids random disk accesses when scanning the graph data file.
 
 SeqStar's graph matching engine is based on the vertex-centric storage to avoid the random disk seeks.
-The intermediate results explosion problem is resolved by adopting a compression algorithm which postpones Cartesian product and digs equivalence classes.
-Moreover, an efficient pipeline join method can work on compressed data.
+The intermediate results explosion problem is resolved by adopting a compression algorithm which based on equivalence classes to postpone Cartesian product.
+Moreover, an efficient pipeline join method can work on compressed data directly.
 \input{sections/match_star}
 \input{sections/match_compress}
 \input{sections/match_join}
