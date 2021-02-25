@@ -1,4 +1,4 @@
-\subsection{Compressed Intermediate Results Wrote Sequentially}\label{sec:match_compress}
+\subsection{Intermediate Results Compression}\label{sec:match_compress}
 The matching results grow exponentially with respect to the size of the graph data.
 %% Consider the matching problem in Figure~\ref{img:running_example},
 %% $S_1$ will generate 28 rows of intermediate results and $S_2$ will generate 8 rows.
@@ -27,7 +27,7 @@ The matching results of the vertices are the same, and SeqStar stores their imag
   \caption{On-disk layout of the compressed intermediate results.}\label{img:compress}
 \end{figure}
 
-The on-disk layout of SuperRows is shown in Figure~\ref{img:compress}.
+Figure~\ref{img:compress} shows the SuperRos on-disk layout.
 In each SuperRow, the matched vertices are stored consecutively.
 Metadata $(pos_i, \#eqv_i)$ are used to store the image sets for each neighbor equivalence class.
 During the star matching process, matched vertices from the \textsc{NeighborIter} will be appended to the SuperRow file.
