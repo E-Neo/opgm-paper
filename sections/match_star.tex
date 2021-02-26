@@ -49,7 +49,7 @@
 %%   For one thing, it is a hard engineering problem, because the traditional underlying graph storage method is not suitable for property graphs (Section~\ref{sec:storage}).
 %%   For another, many existing work rely on the perfect isotropic properties of a simple graph to operate and optimize their algorithms~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/QiaoZC17}.
 SeqStar uses a novel star decomposition algorithm that preserves as much matching information as possible.
-It also harness the start isomorphism to scan the graph data sequentially and only once.
+It also harness the star isomorphism to scan the graph data sequentially and only once.
 
 %On top of the vertex-centric storage engine, SeqStar reduces the I/O cost by analyzing star isomorphism and scanning the graph data sequentially only once.
 
@@ -68,6 +68,11 @@ SeqStar addresses the problem by keeping the original pattern graph unchanged, a
 The algorithm uses a heuristic function $f(u) = \frac{\deg(u) + |\psi(u)|}{\operatorname{freq}(u.label)}$ to select roots,
 where $\deg(u)$ is the degree of $u$, $|\psi(u)|$ is the number of constraints related to $u$ ($u_2 > u_1$, $u_3 > u_1$, $u_4 < 8$ in Figure~\ref{img:running_example}),
 and $\operatorname{freq}(u.label)$ is the frequency of $u$'s label in the data graph.
+By maximizing the function $f$,
+SeqStar prefers vertex that
+(1) has a high degree and has more associated constraints,
+(2) has a less popular label in the data graph.
+
   %% Consider the pattern graph in Figure~\ref{img:star_decomposition},
   %% suppose that $u_1$, $u_2$ and $u_3$ are selected as the roots,
   %% existing decomposition method would result in three stars with 3, 2 and 1 neighbor\@(s)
