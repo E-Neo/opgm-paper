@@ -28,7 +28,7 @@ Local constraints can be applied during the star matching process to filter out 
   \SetKwFunction{AddEdgeConstraint}{\textsc{AddEdgeConstraint}}
   \SetKwFunction{Edges}{\textsc{Edges}}
   \Fn{\PredicatePushdown{$exprs$, $p$}}{
-    $globals \leftarrow [\,]$\;
+    $globals \leftarrow \emptyset$\;
     \ForEach{$expr \in exprs$}{
       \Match{$expr$}{
         \Case{$\psi(u)$}{\AddVertexConstraint{$p$, $\psi(u)$}}
