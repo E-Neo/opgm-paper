@@ -25,6 +25,8 @@ SeqStar ensures $u_i \in V(S_{i-1})$ such that the Super-indexes will always wor
 
 After that, SeqStar performs a pipeline join on the SuperRows to avoid materializing intermediate results.
 The basic structure of the algorithm is a series of nested loops  (Algorithm~\ref{alg:join}).
+The planner of SeqStar creates the context to guides the executor to perform the loops.
+The executor uses a stack to record the vertices $v_1, v_2, \dots, v_c$ and the references of SuperRows $sr_1, sr_2, \dots, sr_c$.
 
 \begin{algorithm}[ht]
   \caption{Pipeline Join}\label{alg:join}
@@ -33,10 +35,10 @@ The basic structure of the algorithm is a series of nested loops  (Algorithm~\re
     $v_1 \leftarrow sr_1[u_1]$\;
     \ForEach{$v_2 \in sr_1[u_2]$}{
       \If{$sr_2 \leftarrow T_2.idx(v_2)$}{
-        \ForEach{$v_3 \in \bigcap_{u_3 \in sr}sr[u_3]$}{
+        \ForEach{$v_3 \in \bigcap_{u_3 \in S_i, i < 3}sr_i[u_3]$}{
           $\cdots$\;
           \If{$sr_c \leftarrow T_c.idx(v_c)$}{
-            \Yield{$(v_1, \dots, v_c, \bigcap_{u_{c+1}\in sr}sr[u_{c+1}], \dots)$}\;
+            \Yield{$(v_1, \dots, v_c, \bigcap_{u_{c+1}\in S_i}sr_i[u_{c+1}], \dots)$}\;
           }
         }
       }
@@ -49,6 +51,12 @@ That is to say set intersection is the most computation-intensive operation.
 Since vertices are sorted in the storage engine,
 the order will still preserves in every image sets.
 This property makes it perfect for the merge algorithm to perform set intersection.
+
+To obtain the final results, decompression is done by performing Cartesian production on the yielded results.
+Since the pipeline join is performed in a stream manner, the decompression can be done only if required.
+Note that a unique operation is required for vertices in the same equivalence class.
+For example, $(1, 2, 3, 4)$ is a valid matching for $(u_1, u_2, u_3, u_4)$ but $(1, 2, 2, 4)$ is not (Figure~\ref{img:running_example}).
+
 %% Consider the SuperRows in Figure~\ref{img:running_example}, whose columns are image set for \textsc{NeighborInfo} equivalence class except the first column, which is the matching result of the root.
 %% Thus the first column of a SuperRow contains only a single vertex, which is suitable for the key of a index.
 %% In fact, the index is generated during the star matching process,

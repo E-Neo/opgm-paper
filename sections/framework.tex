@@ -25,7 +25,7 @@ which describes the pattern graph in Figure~\ref{img:running_example}:
           (u1)-[:FOLLOWS]->(u3:Person)-[:FOLLOWS]->(u1),
           (u1)-[:REPOSTS]->(u4:Media),
           (u2)-[:LIKES]->(u4)<-[:LIKES]-(u3)
-    WHERE u2 > u1 AND u3 > u1 AND u4 < 8
+    WHERE u2 > u1 AND NOT (u3 <= u1 OR u4 >= 8)
   \end{Verbatim}
   \caption{Example query.}\label{img:cypher_query}
 \end{figure}
