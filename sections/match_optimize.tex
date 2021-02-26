@@ -3,7 +3,7 @@ SeqStar can do further optimizations by analyzing the WHERE clause and push the 
 
 The WHERE clause specifies extra constraints on the matching results in the form of predicates,
 e.g., $u_2 > u_1$, $u_3 \le u_1$, etc.
-And the Boolean operators AND, OR, NOT combine multiple predicates into a new one.
+%And the Boolean operators AND, OR, NOT combine multiple predicates into a new one.
 Semantically, the predicates connected by the AND operator can be checked separately.
 
 \begin{figure}[ht]
@@ -18,8 +18,8 @@ SeqStar analyzes the syntax tree of each $expr$ and groups them into three categ
 (1) $\psi(u)$ is the predicate that has only one free variable $u$, e.g., $u_4 < 8$ (Figure~\ref{img:constraints});
 (2) $\psi(u_1, u_2)$ has two free variables and edge exists between $u_1$, $u_2$, e.g., $u_2 > u_1$, $u_3 > u_1$;
 (3) other predicates.
-The predicates belong to (1) and (2) are bound to a star and we name it as \emph{local constraints}.
-Local constraints can be applied during the star matching process to filter out unnecessary matchings.
+The predicates belong to (1) and (2) are as \emph{local constraints} which are bounded to a star. 
+Local constraints can be applied during the star matching.
 
 \begin{algorithm}[ht]
   \caption{Predicate Pushdown}\label{alg:pushdown}
