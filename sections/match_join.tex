@@ -8,17 +8,16 @@ SeqStar reduces the memory usage further by performing pipeline join on compress
 
 To boost the join operation, we design an index on the SuperRow data.
 Consider the SuperRow layout in Figure~\ref{img:compress}, each SuperRow contains only one root.
-The uniqueness of the root makes it possible to be the key of a index (SuperRow-index):
-Given a root ID, it returns the position of the corresponding SuperRow.
-Since the vertices are sorted in the storage engine,
-the SuperRow-index can be build by appending after a SuperRow is stored.
-And the SuperRow-index operates by a simple binary search.
+The uniqueness of the root makes it possible to be the key of an index (SuperRow-index).
+Given a root ID, the index returns the position of the corresponding SuperRow.
+Since the vertices are sorted in the storage engine, the SuperRow-index can be built by simply appending each root with the address of the corresponding SuperRow. The index is then naturally ordered to provide binary search.
 
-The planner of SeqStar first generates a join order based on the statistical parameters of SuperRows,
+
+The planner of SeqStar first generates a join order based on the statistical information of SuperRows,
 i.e., row number, average size of image sets.
-The parameters are accumulated when a SuperRow is appended, and the cost is trivial.
+The statistical information is obtained gotten updated after each SuperRow is appended.
 Since the chosen root vertices form a connected vertex-cover (Algorithm~\ref{alg:decompose_stars}),
-the join order can ensure the root of the stars are bound by previous stars.
+the join order can ensure the root of the stars are bounded by previous stars.
 Therefore the SuperRow-indexes will always work.
 %% For example, $T_1 \Join T_2 \Join \cdots \Join T_c$ (the discussion can be generalized to other join orders),
 %% where $T_i$ is the SuperRows of $S_i$, and the root of $S_i$ is $u_i$.
@@ -47,15 +46,15 @@ The executor uses a stack to record the vertices $v_1, v_2, \dots, v_c$ and the 
   }
 \end{algorithm}
 
-Unlike the traditional join problem, SeqStar joins on image sets rather than single elements.
+Unlike the traditional join, SeqStar joins on image sets rather than single elements.
 That is to say set intersection is the most computation-intensive operation.
 Since vertices are sorted in the storage engine,
 the order will still preserve in every image sets.
 This property makes it perfect for the merge algorithm to perform set intersection.
 
-To obtain the final results, decompression is done by performing Cartesian production on the yielded results.
-Since the pipeline join is performed in a stream manner, the decompression can be done only if required.
-Note that a unique operation is required for vertices in the same equivalence class.
+To obtain the final results, decompression is done by performing Cartesian production.
+The decompression is performed only if required.
+Note that a de-duplication operation is required for vertices in the same equivalence class.
 For example, $(1, 2, 3, 4)$ is a valid matching for $(u_1, u_2, u_3, u_4)$ but $(1, 2, 2, 4)$ is not (Figure~\ref{img:running_example}).
 
 %% Consider the SuperRows in Figure~\ref{img:running_example}, whose columns are image set for \textsc{NeighborInfo} equivalence class except the first column, which is the matching result of the root.
