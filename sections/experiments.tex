@@ -125,7 +125,8 @@ and they can be cached in memory to boost queries.
 \end{table}
 
 Table~\ref{tab:compression_ratio} shows the compression ratio of SeqStar's SuperRow.
-$93\%$ of the data have a compression ratio larger than $10$;
+The compression ratio is defined as \emph{uncompressed data size / compressed data size}.
+In the table, $93\%$ of the data have a compression ratio larger than $10$;
 $73\%$ larger than $100$; and $59\%$ larger than $1000$.
 
 We also studied the impact of metadata in SuperRows (\S\ref{sec:match_compress} Figure~\ref{img:compress}),
