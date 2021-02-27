@@ -2,7 +2,7 @@
 \subsection{Setup}
 \subsubsection{Environment}
 The experiments were performed on a single machine with two Intel Xeon Processor E5--2699 v4 CPUs, 64 GB of RAM,
-and a 800GB SSD\@.
+and an 800GB SSD\@.
 The machine has 22 cores and 44 threads.
 Memory caches were dropped before each experiment to force disk loads.
 \subsubsection{Datasets and Queries}
@@ -38,7 +38,7 @@ $q_9$ --- $q_{12}$ are queries with multi-edges.
 
 \subsection{Preprocessing Cost}
 We first study the preprocessing cost of SeqStar's vertex-centric storage engine.
-The preprocessing incurs a external sort on the original graph data to generate the formatted data graph shown in Figure~\ref{img:data_graph}.
+The preprocessing incurs an external sort on the original graph data to generate the formatted data graph shown in Figure~\ref{img:data_graph}.
 The cost is $\mathcal{O}(n \log n)$ where n is the size of the unsorted graph data.
 We use 32-bit integers to store the vertex IDs, and 16-bit integers to store the vertex/edge labels.
 As is shown in Figure~\ref{img:exp_preprocessing}, the preprocessing time grows linearly with respect to the size of graph data.
@@ -50,23 +50,48 @@ In fact, the preprocessing time of the vertex-centric storage is significantly s
   \caption{Preprocessing time of SeqStar.}\label{img:exp_preprocessing}
 \end{figure}
 \subsection{Comparative Performance}\label{sec:experiments_compare}
-SeqStar is studied in two scenarios:
-(1) The intermediate result cache is turned off and the star matching process has to scan the data graph on disk in each experiment;
-(2) The intermediate result cache is turned on such that SeqStar is able to join on the SuperRows directly.
-And we compare the overall performance of SeqStar against Graphflow~\cite{DBLP:journals/pvldb/MhedhbiS19} and Neo4j.
-
+We evaluate the performance of SeqStar, Graphflow and Neo4j (Version 4.2.3).
 Graphflow is the state-of-the-art in-memory subgraph querying system,
 and it is the fastest baseline we are aware of.
 Graphflow is a JVM based system, and we set the maximum size of the JVM heap to 60GB to let it make full use of main memory.
 However Graphflow does not support queries with multi-edges, i.e., $q_9$ --- $q_{12}$,
 and it will report fake results for these queries\footnote{Graphflow will report matchings even the data does not contain multi-edges.}.
 Therefore we use only $q_1$ --- $q_8$ to compare with Graphflow.
+Neo4j is a widely used industrial graph database, which fully supports the property graph model.
+However, Neo4j runs much slower than Graphflow and SeqStar for graph matching.
+Therefore we only test $q_9$ --- $q_{12}$  on Neo4j that Graphflow doesn't support.
+
 \begin{figure*}[ht]
   \centering
   \includegraphics[width=\textwidth]{img/exp_compare.pdf}
-  \caption{Execution time.}\label{img:exp_compare}
+  \caption{Execution time of SeqStar and Graphflow.}\label{img:exp_compare}
 \end{figure*}
 
+Figure~\ref{img:exp_compare} compares SeqStar against Graphflow.
+For datasets EP, GO and BS, SeqStar outperforms the existing work by $1.4\times$ to $26\times$.
+We notice that the CPU utilization of Graphflow drops quickly as some cores finish their work early,
+leaving long tails to run.
+In contrast, SeqStar overcomes the long tail problem by work stealing and our SeqStar is the clear winner.
+
+For datasets LJ and OK, the disk scanning overhead of SeqStar predominates as the datasets become larger.
+Therefore Graphflow outperforms SeqStar on $q_1$, $q_2$, $q_3$ and $q_7$ by 17 seconds on average.
+However, for complex query such as $q_6$, SeqStar still outperforms Graphflow (dataset OK).
+Moreover, Graphflow fails to process $q_4$, $q_6$ (except dataset OK) and $q_8$ due to the out of memory problem.
+Whereas our SeqStar still works on these queries.
+Both SeqStar and Graphflow fail to finish enumerating $q_5$ in 35 minutes as the result size is quite large:
+$3.2 \times 10^{13}$ for LJ and $3.8 \times 10^{14}$ for OK\@.
+However, our SeqStar is able to analyze the compressed data and report useful information,
+e.g., the result size for LJ and OK on $q_5$ can be reported in less than 20 seconds.
+
+Figure~\ref{img:exp_compare_neo4j} shows the execution time of SeqStar and Neo4j on query $q_9$ to $q_{12}$.
+The dataset OK does not contain multi-edges and we omit it in this experiment.
+Neo4j fails to get the final answer of $q_{11}$, $q_{12}$ on BS, and $q_{10}$ --- $q_{12}$ on LJ in 35min.
+Our SeqStar outperforms Neo4j by orders of magnitude.
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.45\textwidth]{img/exp_compare_neo4j.pdf}
+  \caption{Execution time of SeqStar and Neo4j.}\label{img:exp_compare_neo4j}
+\end{figure}
 \subsection{Compression Ratio}\label{sec:experiments_compress}
 \subsection{Performance of Star Decompression}
 \subsection{Parallelism of Pipeline Join}\label{sec:experiments_join}
