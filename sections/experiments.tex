@@ -93,5 +93,62 @@ Our SeqStar outperforms Neo4j by orders of magnitude.
   \caption{Execution time of SeqStar and Neo4j.}\label{img:exp_compare_neo4j}
 \end{figure}
 \subsection{Compression Ratio}\label{sec:experiments_compress}
+Table~\ref{tab:compressed} shows the size of compressed intermediate results (SuperRows).
+The size of the SuperRows (include metadata) is much smaller (less than $22\%$) compared to the size of the original graph data (Figure~\ref{img:exp_preprocessing}).
+SeqStar will only generate intermediate results from star matching,
+and they can be cached in memory to boost afterward queries.
+
+\begin{table}
+  \caption{Size of compressed intermediate results. (MB)}\label{tab:compressed}
+  \begin{tabular}{lrrrrr}
+    \toprule
+    $q$ &  EP &  GO &  BS &  LJ &  OK \\
+    \midrule
+    1  &   1 &  15 &  19 & 174 & 267 \\
+    2  &   2 &  16 &  21 & 208 & 317 \\
+    3  &   2 &  15 &  19 & 238 & 366 \\
+    4  &   1 &  16 &  20 & 206 & 314 \\
+    5  &   1 &   9 &  11 & 153 & 240 \\
+    6  &   3 &  29 &  37 & 411 & 619 \\
+    7  &   4 &  33 &  43 & 477 & 749 \\
+    8  &   3 &  25 &  31 & 343 & 505 \\
+    9  &   1 &   6 &   8 & 119 & 0 \\
+    10 &   2 &  13 &  16 & 244 & 0 \\
+    11 &   2 &  14 &  18 & 249 & 0 \\
+    12 &   2 &  11 &  14 & 251 & 0 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Table~\ref{tab:compression_ratio} shows the compression ratio of SeqStar's SuperRow.
+$93\%$ of the data have a compression ratio larger than $10$;
+$73\%$ larger than $100$; and $59\%$ larger than $1000$.
+
+We also studied the impact of metadata in SuperRows (Figure~\ref{img:compress}),
+and find that the metadata takes no more than $35\%$ of the space.
+Over $68\%$ of the cases, the metadata use less than $25\%$ of the space.
+
+\begin{table}
+  \caption{The compression ratio of SuperRows.}\label{tab:compression_ratio}
+  \begin{tabular}{lrrrrr}
+    \toprule
+    $q$ &     EP &       GO &          BS &       LJ &        OK \\
+    \midrule
+    1  &     26 &       35 &         699 &       37 &        90 \\
+    2  &   2225 &       15 &         114 &     9227 &    174687 \\
+    3  &   1603 &      207 &        5645 &     3373 &      6823 \\
+    4  &    812 &       13 &         114 &     2154 &      6666 \\
+    5  & 308241 &      632 &        5144 &  3966263 &  30030074 \\
+    6  &  59045 &     1091 &       28381 &   353610 &   1031953 \\
+    7  & 550049 & 17468015 & 35906569518 & 33560087 & 415665030 \\
+    8  &     24 &        4 &          10 &       25 &        31 \\
+    9  &     11 &        2 &           7 &       14 &        \\
+    10 &   3397 &    37339 &     8700505 &    13089 &        \\
+    11 &  10209 &      331 &       14216 &    38987 &        \\
+    12 &  11163 &      244 &       13311 &    89171 &        \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
 \subsection{Performance of Star Decompression}
 \subsection{Parallelism of Pipeline Join}\label{sec:experiments_join}
