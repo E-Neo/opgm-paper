@@ -6,14 +6,13 @@ and an 800GB SSD\@.
 The machine has 22 cores and 44 threads.
 Memory caches were dropped before each experiment to force disk loads.
 \subsubsection{Datasets and Queries}
-We use real-world data graphs~\cite{snapnets} listed in Table~\ref{tab:datasets} with difference domains of applications and sizes.
-The vertices and edges in the datasets are labeled randomly as in~\cite{DBLP:journals/pvldb/MhedhbiS19}.
+Our datasets and the queries have 2 vertex labels and 2 edge labels.
+We use real-world data graphs~\cite{snapnets} listed in Table~\ref{tab:datasets} with different sizes. The vertices and edges in the datasets are labeled randomly as in~\cite{DBLP:journals/pvldb/MhedhbiS19}.
 The queries (Figure~\ref{img:queries}) are selected from existing work~\cite{DBLP:conf/cloud/SerafiniMS17,DBLP:journals/pvldb/MhedhbiS19}.
 The labels of vertices and edges are tagged randomly,
 and they are represented by the colors and patterns of lines in Figure~\ref{img:queries}.
 The queries we choose represent different topologies: trees, chains, and cyclic graphs.
 $q_9$ --- $q_{12}$ are queries with multi-edges.
-The datasets and the queries have 2 vertex labels and 2 edge labels.
 \begin{table}
   \caption{Datasets}\label{tab:datasets}
   \begin{tabular}{lrr}
@@ -38,7 +37,7 @@ The datasets and the queries have 2 vertex labels and 2 edge labels.
 \subsection{Preprocessing Cost}
 We first study the preprocessing cost of SeqStar's vertex-centric storage engine.
 The preprocessing incurs an external sort on the original graph data to generate the formatted data graph shown in Figure~\ref{img:data_graph}.
-The cost is $\mathcal{O}(n \log n)$ where n is the size of the unsorted graph data.
+The cost is $\mathcal{O}(n \log n)$ where $n$ is the size of the unsorted graph data.
 We use 32-bit integers to store the vertex IDs, and 16-bit integers to store the vertex/edge labels.
 As is shown in Figure~\ref{img:exp_preprocessing}, the preprocessing time grows linearly with respect to the size of graph data.
 In fact, the preprocessing time of the vertex-centric storage is significantly smaller than the execution time of complex queries (\S\ref{sec:experiments_compare}).
@@ -52,10 +51,10 @@ In fact, the preprocessing time of the vertex-centric storage is significantly s
 We evaluate the performance of SeqStar, Graphflow and Neo4j (Version 4.2.3).
 Graphflow is the state-of-the-art in-memory subgraph querying system,
 and it is the fastest baseline we are aware of.
-Graphflow is a JVM based system, and we set the maximum size of the JVM heap to 60GB to let it make full use of main memory.
+Graphflow is a JVM based system, and we set the maximum size of the JVM heap to be 60GB to full use of main memory.
 However Graphflow does not support queries with multi-edges, i.e., $q_9$ --- $q_{12}$,
 and it will report fake results for these queries\footnote{Graphflow will report matchings even the data does not contain multi-edges.}.
-Therefore we use only $q_1$ --- $q_8$ to compare with Graphflow.
+Therefore we use $q_1$ --- $q_8$ to compare to Graphflow.
 Neo4j is a widely used industrial graph database, which fully supports the property graph model.
 However, Neo4j runs much slower than Graphflow and SeqStar for graph matching.
 Therefore we only test $q_9$ --- $q_{12}$  on Neo4j that Graphflow doesn't support.
@@ -69,7 +68,7 @@ Therefore we only test $q_9$ --- $q_{12}$  on Neo4j that Graphflow doesn't suppo
 Figure~\ref{img:exp_compare} compares SeqStar against Graphflow.
 For datasets EP, GO and BS, SeqStar outperforms the existing work by $1.4\times$ to $26\times$.
 We notice that the CPU utilization of Graphflow drops quickly as some cores finish their work early,
-leaving long tails to run.
+leading to the long tail problem.
 In contrast, SeqStar overcomes the long tail problem by work stealing and our SeqStar is the clear winner.
 
 For datasets LJ and OK, the disk scanning overhead of SeqStar predominates as the datasets become larger.
