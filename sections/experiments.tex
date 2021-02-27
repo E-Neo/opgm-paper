@@ -79,7 +79,7 @@ and the time spent on processing the intermediate data is reduced.
 
 For datasets LJ and OK, the datasets are so large that the disk scanning overhead of SeqStar predominates as the datasets become larger.
 Therefore Graphflow outperforms SeqStar on $q_1$, $q_2$, $q_3$ and $q_7$.
-However, for complex query such as $q_6$, SeqStar still outperforms Graphflow in dataset OK.
+However, for complex query such as $q_6$, SeqStar still outperforms Graphflow in dataset OK\@.
 Moreover, Graphflow fails to process $q_4$, $q_6$ (except dataset OK) and $q_8$ due to the out of memory problem.
 Whereas our SeqStar still works on these queries.
 Both SeqStar and Graphflow fail to finish enumerating $q_5$ in 35 minutes as the result size is quite large:
@@ -128,7 +128,7 @@ Table~\ref{tab:compression_ratio} shows the compression ratio of SeqStar's Super
 $93\%$ of the data have a compression ratio larger than $10$;
 $73\%$ larger than $100$; and $59\%$ larger than $1000$.
 
-We also studied the impact of metadata in SuperRows (Figure~\ref{img:compress}),
+We also studied the impact of metadata in SuperRows (\S\ref{sec:match_compress} Figure~\ref{img:compress}),
 and find that the metadata takes no more than $35\%$ of the space.
 Over $68\%$ of the cases, the metadata use less than $25\%$ of the space.
 
