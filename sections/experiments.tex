@@ -67,9 +67,15 @@ Therefore we only test $q_9$ --- $q_{12}$  on Neo4j that Graphflow doesn't suppo
 
 Figure~\ref{img:exp_compare} compares SeqStar against Graphflow.
 For datasets EP, GO and BS, SeqStar outperforms the existing work by $1.4\times$ to $26\times$.
-We notice that the CPU utilization of Graphflow drops quickly as some cores finish their work early,
-leading to the long tail problem.
-In contrast, SeqStar overcomes the long tail problem by work stealing and our SeqStar is the clear winner.
+Graphflow uses edges as the basic matching unit and applies worst case optimal join on the edges.
+In contrast, our SeqStar use stars to filter the graph data.
+As stars contain more filtering constraints than edges, SeqStar results in smaller intermediate results.
+Moreover, SeqStar compresses the intermediate results and performs parallel pipeline join on the compressed data.
+Therefore, the memory usage of SeqStar is much smaller than Graphflow,
+and the time spent on processing the intermediate data is reduced.
+%% We notice that the CPU utilization of Graphflow drops quickly as some cores finish their work early,
+%% leading to the long tail problem.
+%% In contrast, SeqStar overcomes the long tail problem by work stealing and our SeqStar is the clear winner.
 
 For datasets LJ and OK, the disk scanning overhead of SeqStar predominates as the datasets become larger.
 Therefore Graphflow outperforms SeqStar on $q_1$, $q_2$, $q_3$ and $q_7$ by 17 seconds on average.
@@ -77,7 +83,7 @@ However, for complex query such as $q_6$, SeqStar still outperforms Graphflow (d
 Moreover, Graphflow fails to process $q_4$, $q_6$ (except dataset OK) and $q_8$ due to the out of memory problem.
 Whereas our SeqStar still works on these queries.
 Both SeqStar and Graphflow fail to finish enumerating $q_5$ in 35 minutes as the result size is quite large:
-$3.2 \times 10^{13}$ for LJ and $3.8 \times 10^{14}$ for OK\@.
+There are $3.2 \times 10^{13}$ rows for LJ and $3.8 \times 10^{14}$ for OK\@.
 However, our SeqStar is able to analyze the compressed data and report useful information,
 e.g., the result size for LJ and OK on $q_5$ can be reported in less than 20 seconds.
 

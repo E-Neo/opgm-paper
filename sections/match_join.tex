@@ -12,7 +12,6 @@ The uniqueness of the root makes it possible to be the key of an index (SuperRow
 Given a root ID, the index returns the position of the corresponding SuperRow.
 Since the vertices are sorted in the storage engine, the SuperRow-index can be built by simply appending each root with the address of the corresponding SuperRow. The index is then naturally ordered to provide binary search.
 
-
 The planner of SeqStar first generates a join order based on the statistical information of SuperRows,
 i.e., row number, average size of image sets.
 The statistical information is obtained gotten updated after each SuperRow is appended.
@@ -24,9 +23,10 @@ Therefore the SuperRow-indexes will always work.
 %% SeqStar ensures $u_i \in V(S_{i-1})$ such that the Super-indexes will always work.
 
 After that, SeqStar performs a pipeline join on the SuperRows to avoid materializing intermediate results.
-The basic structure of the algorithm is a series of nested loops  (Algorithm~\ref{alg:join}).
+The basic structure of the algorithm is a series of nested loops (Algorithm~\ref{alg:join}).
 The planner of SeqStar creates the context to guides the executor to perform the loops.
 The executor uses a stack to record the vertices $v_1, v_2, \dots, v_c$ and the references of SuperRows $sr_1, sr_2, \dots, sr_c$.
+The loops can be executed in parallel to make full use of multi-cores.
 
 \begin{algorithm}[ht]
   \caption{Pipeline Join}\label{alg:join}
