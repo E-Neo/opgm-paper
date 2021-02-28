@@ -83,9 +83,10 @@ However, for complex query such as $q_6$, SeqStar still outperforms Graphflow in
 Moreover, Graphflow fails to process $q_4$, $q_6$ (except dataset OK) and $q_8$ due to the out of memory problem.
 Whereas our SeqStar still works on these queries.
 Both SeqStar and Graphflow fail to finish enumerating $q_5$ in 35 minutes as the result size is quite large:
-There are $3.2 \times 10^{13}$ rows for LJ and $3.8 \times 10^{14}$ rows for OK\@.
+There are $3.2 \times 10^{13}$ rows of final results for LJ and $3.8 \times 10^{14}$ rows for OK\@.
 However, our SeqStar is able to analyze the compressed data and report useful information,
-e.g., the result size for LJ and OK on $q_5$ can be reported in less than 20 seconds.
+e.g., the result size for LJ and OK on $q_5$ can be reported in less than 20 seconds
+(SeqStar scans the SuperRows and uses the formula $|s_1 \times s_2 \times \cdots| = |s_1| \times |s_2| \times \cdots$ to calculate the size of Cartesian products without really performing them).
 
 Figure~\ref{img:exp_compare_neo4j} shows the execution time of SeqStar and Neo4j on query $q_9$ to $q_{12}$.
 The dataset OK does not contain multi-edges and we omit it in this experiment.

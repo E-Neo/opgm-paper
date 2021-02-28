@@ -19,28 +19,28 @@ These filters can be applied during the star matching process.
 
 \begin{table}
   \caption{Performance of Predicate Pushdown (LJ)}\label{tab:pushdown_lj}
-  \begin{tabular}{l|p{5mm}p{5mm}p{7mm}|rrr}
+  \begin{tabular}{lrrrrrr}
     \toprule
-    $q$ & Time (sec) & Time (opt, sec) & Speed-up $\times$ & \#Rows & \#Rows (opt) & Reduction \\
+    $q$ & \parbox{5mm}{$T$ (sec)} & \parbox{5mm}{$T_{OPT}$ (sec)} & $\frac{T}{T_{OPT}}$ & $\#R$ & $\#R_{OPT}$ & $\frac{\#R}{\#R_{OPT}}$ \\
     \midrule
-    4 &   944 &        11 &       89 &   1.0 $\times$ 10^{12} &      6.6 $\times$ 10^7 &      15376 \\
-    5 &     &         4 &        &        3.2 $\times$ 10^{13}  &     6.7 $\times$ 10^8 &     47520   \\
-    6 &   571 &        24 &       24 &    6.2 $\times$ 10^{11} &     1.6 $\times$ 10^8 &       3774 \\
-    8 &  1513 &        24 &       63 &  1.7 $\times$ 10^{13} &    2.0 $\times$ 10^9&       8512 \\
+    4 &   944 &        11 &       89 &   1.0 $\times$ 10^{12} &   6.6 $\times$ 10^7 &     15376 \\
+    5 & >2100 &         4 &     >525 &  3.2 $\times$ 10^{13}  &   6.7 $\times$ 10^8 &     47520 \\
+    6 &   571 &        24 &       24 &   6.2 $\times$ 10^{11} &   1.6 $\times$ 10^8 &      3774 \\
+    8 &  1513 &        24 &       63 &   1.7 $\times$ 10^{13} &    2.0 $\times$ 10^9&      8512 \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 \begin{table}
   \caption{Performance of Predicate Pushdown (OK)}\label{tab:pushdown_ok}
-  \begin{tabular}{l|p{5mm}p{5mm}p{7mm}|rrr}
+  \begin{tabular}{lrrrrrr}
     \toprule
-    $q$ & Time (sec) & Time (opt, sec) & Speed-up $\times$ & \#Rows & \#Rows (opt) & Reduction \\
+    $q$ & \parbox{5mm}{$T$ (sec)} & \parbox{5mm}{$T_{OPT}$ (sec)} & $\frac{T}{T_{OPT}}$ & $\#R$ & $\#R_{OPT}$ & $\frac{\#R}{\#R_{OPT}}$ \\
     \midrule
-    4 &    &        65 &       &         5.6 $\times$ 10^{13}    &   1.7 $\times$ 10^{10} &   3110      \\
-    5 &    &         7 &       &        3.8 $\times$ 10^{14}     &     4.6 $\times$ 10^8 &   813540      \\
-    6 &  1399 &        38 &       37 &    4.4 $\times$ 10^{10} &        8.3 $\times$ 10^5 &      53035 \\
-    8 &  1347 &        36 &       38 & 1.4 $\times$ 10^{13} &     6.1 $\times$ 10^8 &      22609 \\
+    4 & >2100 &        65 &      >32 &  5.6 $\times$ 10^{13} &   1.7 $\times$ 10^{10} &      3110 \\
+    5 & >2100 &         7 &     >300 &  3.8 $\times$ 10^{14} &     4.6 $\times$ 10^8 &     813540 \\
+    6 &  1399 &        38 &       37 &  4.4 $\times$ 10^{10} &     8.3 $\times$ 10^5 &      53035 \\
+    8 &  1347 &        36 &       38 &  1.4 $\times$ 10^{13} &     6.1 $\times$ 10^8 &      22609 \\
     \bottomrule
   \end{tabular}
 \end{table}
