@@ -5,6 +5,23 @@ The experiments were performed on a single machine with two Intel Xeon Processor
 and an 800GB SSD\@.
 The machine has 22 cores and 44 threads.
 Memory caches were dropped before each experiment to force disk loads.
+
+Table~\ref{tab:disk} shows the performance baseline of the SSD that we use.
+The baseline is tested by fio (2.2.10).
+Each testcase reads/writes 1GB data within 10min.
+\begin{table}
+  \caption{Disk Performance Baseline}\label{tab:disk}
+  \begin{tabular}{rrr}
+    \toprule
+    mode-blocksize-iodepth-numjobs & Read (MB/s) & Write (MB/s) \\
+    \midrule
+    Seq-1M-8--1    & 474.99 & 467.89 \\
+    Seq-128K-32--1 & 480.58 & 458.24 \\
+    Rnd-4K-32--16  &  17.11 &  12.83 \\
+    Rnd-4K-1--1    &  33.56 &  97.37 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 \subsubsection{Datasets and Queries}
 Our datasets and the queries have 2 vertex labels and 2 edge labels.
 We use real-world data graphs~\cite{snapnets} listed in Table~\ref{tab:datasets} with different sizes. The vertices and edges in the datasets are labeled randomly as in~\cite{DBLP:journals/pvldb/MhedhbiS19}.
