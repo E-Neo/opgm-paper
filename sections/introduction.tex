@@ -39,9 +39,13 @@ There are two fundamental components in SeqStar:
 the graph storage engine and the graph matching engine. Both are designed specificly to deal with the graph machine problem efficiently.
 
 The storage engine in SeqStar uses the \emph{vertex-centric storage model} which stores the information related to a specific vertex together.
-The conventional way to store graphs is the compressed sparse row (CSC) and compressed sparse column (CSR) approach which stores in/out-edges \emph{separately}~\cite{DBLP:conf/sc/PearceGA10,DBLP:conf/osdi/KyrolaBG12}.
+The conventional way to store graphs is the compressed sparse row (CSR) and compressed sparse column (CSC) approach which stores in/out-edges \emph{separately}~\cite{DBLP:conf/sc/PearceGA10,DBLP:conf/osdi/KyrolaBG12}.
+CSR is equivalent to storing the graph as adjacency list: the out-edges are stored consecutively on disk.
+And CSC stores the in-edges in a similar manner.
 In contrast, SeqStar stores the graph data by storing the in/out-edges \emph{together} with the neighbors of each vertex.
-By doing so, SeqStar can avoid random disk seeks and performance graph matching in a sequential disk scan.
+With small indexes on disks, pattern matching can quickly get the correct address of relevant data on disk during pattern matching.
+We also provide two convenient iterator interfaces to interact with the storage engine.
+As a result, SeqStar can avoid random disk seeks and perform graph matching in a sequential disk scan.
 
 For the graph matching engine, SeqStar uses a star decomposition based algorithm to run graph matching.
 The analyzer of SeqStar analyzes the graph matching query and select a vertex-cover heuristically as the roots of stars.
