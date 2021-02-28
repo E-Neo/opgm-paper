@@ -78,7 +78,7 @@ instead of join them one by one,
 the planner in SeqStar will generate a pipeline plan to multi-join on the SuperRows.
 By doing so, no new intermediate results will be generated.
 SeqStar generates the compressed final results in a stream manner.
-The decompression by Cartesian product to get the final results is not performed unless required to reduce the memory consumption during computation.
+The decompression by Cartesian product to get the final results is not performed     unless required to reduce the memory consumption during computation.
 
 %and the decompression is done by doing Cartesian production on the fly to report the final answer.
 

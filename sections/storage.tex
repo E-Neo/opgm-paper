@@ -2,15 +2,16 @@
 %The random access problem is a well known hard problem for out-of-core systems, especially for the graph related problem, which is notorious for its poor locality~\cite{DBLP:conf/osdi/KyrolaBG12}.
 
 Many graph computing frameworks store graphs on disk using the double list method:
-storing the in-edges and out-edges \textbf{separately} for each vertex,
+storing the in-edges and out-edges \textbf{separately} in different lists for each vertex,
 via the compressed sparse column (CSC) and the compressed sparse row (CSR) format~\cite{DBLP:conf/sc/PearceGA10}.
+%TODO:分别简述一下CSC和CSR都是怎么做的
 However, this separation incurs excessive random access on real-world property graph because we need to get the information for in/out edges during pattern matching.
 
 Instead, SeqStar stores the graph data in a vertex-centric way which stores all the information related to one vertex \textbf{together}.
-With small indexes on disks, pattern matching can quickly get the correct address of relevant data on disk during pattern matching. Because all the related information is stored together, SeqStar can make sure that all disk reads are sequential.
+With small indexes on disks, one can quickly get the correct addresses of relevant data on disk during pattern matching. Because all the related information is stored together, SeqStar can make sure that all disk reads are sequential.
 
 Moreover, by using the property graph matching engine that will be discussed in the next section,
-the huge data graph will be read at most once.
+the huge data graph will be loaded at most once.
 \subsection{Scan the Data Graph Sequentially}
 %The property graph matching problem requires the complete connection information between vertices,
 %however, the conventional double list storage method break up the completeness and results in random disk accesses.
