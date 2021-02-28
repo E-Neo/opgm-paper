@@ -116,7 +116,8 @@ SeqStar prefers vertex that
 
 Given a star $S$, SeqStar first seeks the \textsc{VertexIter} by searching the global index of the storage engine.
 For each vertex $v$ in \textsc{VertexIter},
-SeqStar checks the neighbors of $v$ by visiting the \textsc{NeighborIter}.
+SeqStar first checks the degree of $v$ and applies constraints if available (\S\ref{sec:match_optimize}) to determine whether $v$ could be matched.
+If $v$ passes these filters, SeqStar checks the neighbors of $v$ by visiting the \textsc{NeighborIter}.
 Since the iterators will only incur sequential disk accesses,
 the star matching process avoids the random disk seeks.
 
