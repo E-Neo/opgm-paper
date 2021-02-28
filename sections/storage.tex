@@ -48,9 +48,9 @@ to check the neighbors of vertex $1$, SeqStar scans the neighbors $2, 3, 5, 6$ a
 No random disk access appears during the whole process.
 \subsection{Graph Data Indexes}
 %Despite of the fact that the size of the whole data graph could be gigantic,we may only care a fraction of the graph by specify the labels in our query for a concrete graph matching problem.
-There are two basic operations in a graph matching engine:
+There are two basic operations provided by the graph storage engine:
 (1) Given a data vertex, retrieve its neighbors with a specific label;
-(2) Given a vertex label, retrieve the vertices with the label. The first operation is supported by \emph{local index} and the second operation is supported by \emph{global index}.
+(2) Given a vertex label, retrieve the vertices with the label. In the implementation level, the first operation is supported by \emph{local index} and the second operation is supported by \emph{global index}.
 %% In the following paragraphs, we'll show how to make the two operations efficiently by adding a few simple but efficient indices to the vertex-centric storage engine,
 %% which reduces the searching space and I/O significantly.
 
@@ -64,7 +64,7 @@ no matter how much social media she has published or viewed we could just ignore
 %% As for our vertex-centric storage method,
 For SeqStor's vertex-centric storage,
 we can build the index as in Figure~\ref{img:data_example}.
-These indexes are key-value pairs mapping the vertex labels to the starting/ending position of the neighbors on disk.
+These indexes are key-value pairs mapping the vertex labels to the starting/ending positions of the neighbors on disk.
 Since it is used to locate only the neighbors of a specific vertex, we refer to this kind of index as \emph{local index}.
 With the help of local index, we can skip all the unnecessary neighbors and only scan the necessary ones.
 %% \begin{figure}[ht]
@@ -79,7 +79,7 @@ To begin a match, one need to firstly select a root vertex in the data graph.
 %% regardless of the concrete graph matching algorithm whether it is tree based or join based.
 %There is no need to scan all the vertices in a billion node data graph if we only care about vertices with the specific labels.
 %Just like the local index we discussed above, we could add a global index which
-To this end, a \emph{global index} is constructed to contain key-value pairs that maps the labels to the corresponding position on disk (Figure~\ref{img:data_example}).
+To this end, a \emph{global index} is constructed to contain key-value pairs that maps the labels to the their corresponding positions on disk (Figure~\ref{img:data_example}).
 
 The sizes of indexes in SeqStar are relatively smaller than existing works which have a super-linear index problem~\cite{DBLP:journals/pvldb/SunWWSL12}. The sizes of indexes grow \emph{super-linearly} with respect to the \emph{edges}.
 In contrast, indexes of SeqStar grows \emph{linearly} with respect to the \emph{vertices}.
@@ -95,18 +95,18 @@ The size of the global index is the same as the number of vertex labels ($l$). T
 For applications that need to perform the two basic operations (visiting vertices and visiting the neighbors),
 we define two iterators as the interface to visit the data graph:
 \begin{enumerate}[noitemsep]
-\item \textsc{VertexIter} iterates the vertices with the given label, ordered by vertex ID\@.
+\item \textsc{VertexIter} iterates the vertices with the given label, ordered by vertex IDs\@.
 %Given a vertex label, it iterates through the vertices with the specified label ordered by the ID of vertices;
-\item \textsc{NeighborIter} iterates the neighbors of a given vertex to match a given label. The neighbors are sorted by their IDs.
+\item \textsc{NeighborIter} iterates the neighbors of a given vertex to match a given label. The neighbors are sorted by their vertex IDs.
 
 %Given a data vertex and a label, it visits the neighbors with the label, the neighbors are also sorted by the IDs.
 \end{enumerate}
 %% In Section~\ref{sec:match} we'll show that the sorting constraint could boost the matching of property graphs.
 
 These iterators could be implemented efficiently by using SeqStar's vertex-centric storage model.
-Figure~\ref{img:data_graph} shows the on-disk layout of our vertex-centric storage model.
-Vertices are sorted by their IDs. We store in/out-degrees as early filters when scanning the vertices.
-Edge labels are stored as integers here (alternatively, bitmap could also be used).
+Figure~\ref{img:data_graph} shows the on-disk layout of this model.
+Vertices are sorted by their IDs. We also store in/out-degrees for early filters when scanning the vertices.
+Edge labels are stored as integers here (alternatively, bitmap could also be used if only a small number of labels need to support).
 The \textsc{VertexIter} searches the global index and then visits the disk data sequentially.
 The \textsc{NeighborIter} scans the neighbors with the help of the local index.
 
