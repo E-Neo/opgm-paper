@@ -21,7 +21,7 @@ we ran four of the most time-consuming queries $q_4$, $q_5$, $q_6$ and $q_8$ wit
   WHERE u1 % 5 = 0 AND u2 % u1 = 5
 \end{Verbatim}
 The analyzer of SeqStar will analyze the WHERE clause and obtain:
-(1) a vertex-constraint $u_1 \bmod 5 = 0$ and (2) an edge-constraint $u_2 \bmod u_1 = 5$ (\S\ref{sec:match_optimize}).
+(1) a vertex-constraint <$u_1 \bmod 5 = 0$> and (2) an edge-constraint <$u_2 \bmod u_1 = 5$> (\S\ref{sec:match_optimize}).
 These constraints can be applied during the star matching process.
 
 Table~\ref{tab:pushdown_lj} and Table~\ref{tab:pushdown_ok} illustrate the effects of predicate pushdown on LJ and OK\@.
@@ -29,11 +29,11 @@ $T$ is the execution time with the optimization, i.e., the constraints have to b
 $T_{OPT}$ is the execution time with predicate pushdown.
 $\#R$ is the result size (number of rows) for the queries without the WHERE clause and $\#R_{OPT}$ is the number of rows with WHERE clause applied.
 
-Because of the vertex-constraint $u_1 \bmod 5 = 0$,
+Because of the vertex-constraint <$u_1 \bmod 5 = 0$>,
 the \textsc{VertexIter} can skip invalid vertices whenever possible.
 When scanning the \textsc{NeighborIter}s,
-the edge-constraint $u_2 \bmod u_1 = 5$ is performed to filter out unnecessary matchings.
-The star matching time reduces is reduced by $20\%$ --- $62\%$ in these experiments,
+the edge-constraint <$u_2 \bmod u_1 = 5$> is performed to filter out unnecessary matchings.
+The star matching time is reduced by $20\%$ --- $62\%$ in these experiments,
 and up to $8 \times 10^5 \times$ of unnecessary results are avoided.
 As a result, the total execution time obtains a speedup larger than 525$\times$.
 \begin{table}
