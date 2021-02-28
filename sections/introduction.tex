@@ -1,7 +1,7 @@
 \section{Introduction}
 Graph matching
-%~\footnote{There are two kinds of graphs in a graph matching problem: one is the large \emph{data graph}, the other is the much smaller \emph{pattern graph}} 
-is one of the most important applications of graph databases. In graph matching, a relative small \emph{pattern graph} is used to match subgraphes of a relative large \emph{data graph}.
+%~\footnote{There are two kinds of graphs in a graph matching problem: one is the large \emph{data graph}, the other is the much smaller \emph{pattern graph}}
+is one of the most important applications of graph databases. In graph matching, a relative small \emph{pattern graph} is used to match subgraphs of a relative large \emph{data graph}.
 It is widely used in many fields,
 such as Twitter's recommendation systems~\cite{DBLP:journals/pvldb/GuptaSGGZLL14,DBLP:journals/pvldb/SharmaJBLL16},
 electronic computer-aided design~\cite{DBLP:conf/dac/OhlrichEGS93},
@@ -39,11 +39,19 @@ There are two fundamental components in SeqStar:
 the graph storage engine and the graph matching engine. Both are designed specificly to deal with the graph machine problem efficiently.
 
 The storage engine in SeqStar uses the \emph{vertex-centric storage model} which stores the information related to a specific vertex together.
-Such a model can eliminate the random access problem in compressed sparse row (CSC) and compressed sparse column (CSR) which store in/out-edges separately~\cite{DBLP:conf/sc/PearceGA10,DBLP:conf/osdi/KyrolaBG12}. %这里加上csc和csr的全称，并加上引用
+The conventional way to store graphs is the compressed sparse row (CSC) and compressed sparse column (CSR) approach which stores in/out-edges \emph{separately}~\cite{DBLP:conf/sc/PearceGA10,DBLP:conf/osdi/KyrolaBG12}.
+In contrast, SeqStar stores the graph data by storing the in/out-edges \emph{together} with the neighbors of each vertex.
+By doing so, SeqStar can avoid random disk seeks and performance graph matching in a sequential disk scan.
 
-For the graph matching engine, SeqStar uses a star decomposition based algorithm to run graph matching. %这里加一句如何把原图分解为星型子图
+For the graph matching engine, SeqStar uses a star decomposition based algorithm to run graph matching.
+The analyzer of SeqStar analyzes the graph matching query and select a vertex-cover heuristically as the roots of stars.
+%这里加一句如何把原图分解为星型子图
 We save all useful filtering information in each star subgraph after decomposition. To reduce the amount of memory that would be used as the storage of intermediate results, a novel compression method, which postponing Cartesian production and digging equivalence classes, is used for star matching results. SeqStar's efficient and scalable pipeline join algorithm is able to process the compressed data. To the best of our knowledge, SeqStar is the first system that integrates the optimization of WHERE clauses in the graph matching algorithm, by pushing the predicates down to the star matching process.
 
+According to our experiments, SeqStar outperforms the state-of-the-art graph querying system Graphflow by up to $26\times$.
+And SeqStar can run the queries that Graphflow fails to run due to the out of memory problem.
+For complex property graphs that existing academic researches do not support,
+we compare SeqStar with industrial graph database Neo4j, and achieved over $2100\times$ speedup.
 %To reduce memory usage, we make the following contributions:
 %(1) a novel star decomposition algorithm that keeps all the useful filtering information in stars,
 %(2) a novel compression algorithm for stars' matching results by postponing Cartesian production and digging equivalence classes,
