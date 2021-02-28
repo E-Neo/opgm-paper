@@ -4,20 +4,25 @@
   \includegraphics[width=0.48\textwidth]{img/architecture.pdf}
   \caption{The workflow of SeqStar.}\label{img:architecture}
 \end{figure}
-Figure~\ref{img:architecture} shows the workflow of SeqStar.
+Figure~\ref{img:architecture} shows the workflow of SeqStar. There are mainly two components in SeqStar: the storage engine and the property graph matching engine.
+Both are specially designed to deal with the graph matching problem efficiently.
+
+Traditional graph storage engines such as used in graph databases store the in-edges and out-edges separately for each vertex. 
 Because of the complexity in real-world property graphs,
-the conventional in/out-edges storage method is not suitable and would incur many unnecessary random disk accesses.
-We develop a vertex-centric property graph storage model to address the problem (\S\ref{sec:storage}).
+such a storage method is not suitable and would incur many unnecessary random disk accesses.
+We develop a vertex-centric property storage model to store all information related to one vertex together to address the problem (\S\ref{sec:storage}).
+
+
 Based on the storage model,
 we propose an efficient property graph matching engine that is able to solve real-world graph matching problems (\S\ref{sec:match}).
-The core of the graph matching engine is the planner, which avoids random disk accesses by decomposing the pattern into a series of stars.
+The core of the graph matching engine is the planner, which  decomposes the pattern into a series of stars.
 Compared with existing works, we take steps further by introducing
 (1) a matching result compression algorithm which reduces the cost of materializing intermediate results,
-(2) a predicate pushdown optimizer that is able to filter out unnecessary matchings in an early stage and reduce the burden of the join process.
+(2) a predicate pushdown optimizer that is able to filter out unnecessary matchings in early stages and reduce the burden of the join process.
 
-Next, we show how a concrete query gets executed in SeqStar.
-Consider the Cypher\footnote{Neo4j's graph query language} query in Figure~\ref{img:cypher_query},
-which describes the pattern graph in Figure~\ref{img:running_example}:
+Let's see how a concrete query gets executed in SeqStar.
+Consider the Cypher\footnote{Neo4j's graph query language.} query in Figure~\ref{img:cypher_query},
+which generates the pattern graph in Figure~\ref{img:running_example}:
 
 \begin{figure}[ht]
   \begin{Verbatim}[fontsize=\small]
@@ -36,32 +41,32 @@ which describes the pattern graph in Figure~\ref{img:running_example}:
   \caption{A running example.}\label{img:running_example}
 \end{figure*}
 
-The analyzer first analyze the WHERE clause and extract useful filtering information for optimization.
-The searching conditions $u_2> u_1$, $u_3 > u_1$ and $u_4 < 8$ are added to the pattern graph.
+The analyzer firstly analyzes the WHERE clause and extract useful filtering information for early stage filtering.
+The searching conditions $u_2> u_1$, $u_3 > u_1$ and $u_4 < 8$ are attached to the pattern graph.
 Based on the analysis result and the statistical information of the data graph,
-the planner selects a connected vertex cover ($u_1, u_4$) in the pattern as the roots of stars.
+the planner dynamiclly selects a connected vertex cover ($u_1, u_4$) in the pattern as the roots of stars.
 The star generating algorithm keeps all the relevant edges and additional searching conditions in order to filter out unnecessary matchings as early as possible.
 
 With the help of SeqStar's vertex-centric storage engine,
 all the stars can be matched by scanning the data graph sequentially only once (\S\ref{sec:match_star}).
 For example, to match star $S_2$,
 SeqStar seeks to the vertices labeled with ``Media'' (colored in blue) quickly by searching the index in the storage engine.
-The candidate vertices ($4, 7, 9$)\footnote{Vertices are identified by their IDs using integers.} may match the root $u_4$.
+The candidate vertices ($4, 7, 9$)\footnote{Vertices are identified by their IDs in integers.} may match the root $u_4$.
 Then SeqStar scans the candidate vertices sequentially and finds that only vertex $4, 7$ can be matched ($8$ violates the constraint $u_4 < 8$).
 
 The intermediate results from star matching are not stored as conventional relationship rows.
 Instead, SeqStar compresses them by digging equivalence classes and postponing Cartesian product to reduce memory usage (\S\ref{sec:match_compress}).
-In the decomposed stars, $u_2$ and $u_3$ have the same label, and they also have the same connections\footnote{$u_2 > u_1$ and $u_3 > u_1$ are equivalent in this case because they both represent the filter $f(x): x < u_1$} to the root $u_1$ or $u_4$.
-We say that $u_2$ and $u_3$ belong to the same \emph{neighbor equivalence class}.
+In the decomposed stars, $u_2$ and $u_3$ have the same label, and they also have the same connections\footnote{$u_2 > u_1$ and $u_3 > u_1$ are equivalent in this case because they both represent the filter $f(x): x > u_1$.} to the root $u_1$ or $u_4$.
+We say that $u_2$ and $u_3$ both belong to the same \emph{neighbor equivalence class}.
 For each neighbor equivalence class, the matched vertices are stored together as an \emph{image set}.
 For example $\{2, 3, 5, 6\}$ in $T_1$ is the image set of $u_2$ and $u_3$.
-An image set is the basic structure to hold the intermediate results.
+An \emph{image set} is the basic structure to hold the intermediate results.
 While scanning each vertex $v$ in the data graph,
 SeqStar checks the neighbors of $v$ and stores the matched neighbors together as image sets.
 To match the star $S_2$,
 for each candidate e.g., vertex $4$, SeqStar scans the neighbors of vertex $4$ and finds that $u_1$'s image set is $\{1\}$,
 the image set of $u_2, u_3$ is $\{2, 3, 8\}$.
-The tuple $(4, \{1\}, \{2, 3, 8\})$ is than appended to the compressed intermediate results, as a \emph{SuperRow}.
+The tuple $(4, \{1\}, \{2, 3, 8\})$ is then appended to the compressed intermediate results, as a \emph{SuperRow}.
 Note that the first column contains only one vertex, which matches the root of a star.
 
 Finally, SeqStar performs the joins on SuperRows to obtain the final results (\S\ref{sec:match_join}). The planner generates a join order ($T_1 \Join T_2$ in this case) based on the statistical information of the SuperRows.
@@ -73,7 +78,7 @@ instead of join them one by one,
 the planner in SeqStar will generate a pipeline plan to multi-join on the SuperRows.
 By doing so, no new intermediate results will be generated.
 SeqStar generates the compressed final results in a stream manner.
-The decompression by Cartesian production is done only if required to get the final results.
+The decompression by Cartesian product to get the final results is not performed unless required to reduce the memory consumption during computation.
 
 %and the decompression is done by doing Cartesian production on the fly to report the final answer.
 
