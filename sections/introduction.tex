@@ -30,7 +30,7 @@ Existing systems~\cite{DBLP:conf/sosp/TeixeiraFSSZA15,DBLP:conf/sigmod/DiasTGM01
 %(2) For distributed approaches, on the one hand it is hard to partition the graph across cluster machines to minimize the communication cost~\cite{DBLP:journals/im/LeskovecLDM09} and have performance problems~\cite{DBLP:conf/sigmod/KimLBHLKJ16},
 %one the other hand it is inconvenient and costly for the end user to maintain the cluster nodes~\cite{DBLP:conf/osdi/KyrolaBG12}.
 
-This paper proposes SeqStar, a high performance out-of-core property graph matching system for real-world graphs, which scans the disk sequentially by matching stars (a star contains a root vertex and some leaves which are the neighbors of the root).
+This paper proposes SeqStar (Seq-ential store and Star-matching), a high performance out-of-core property graph matching system for real-world graphs, which scans the disk sequentially by matching stars (a star contains a root vertex and some leaves which are the neighbors of the root).
 
 %Therefore, in order to match up with the need of real-world problems,a high performance disk-based property graph matching system is desirable.
 
@@ -47,10 +47,26 @@ With small indexes on disks, pattern matching can quickly get the correct addres
 We also provide two convenient iterator interfaces to interact with the storage engine.
 As a result, SeqStar can avoid random disk seeks and perform graph matching in a sequential disk scan.
 
-For the graph matching engine, SeqStar uses a star decomposition based algorithm to run graph matching.
-The analyzer of SeqStar analyzes the graph matching query and select a vertex-cover heuristically as the roots of stars.
-%这里加一句如何把原图分解为星型子图
-We save all useful filtering information in each star subgraph after decomposition. To reduce the amount of memory that would be used as the storage of intermediate results, a novel compression method, which postponing Cartesian production and digging equivalence classes, is used for star matching results. SeqStar's efficient and scalable pipeline join algorithm is able to process the compressed data. To the best of our knowledge, SeqStar is the first system that integrates the optimization of WHERE clauses in the graph matching algorithm, by pushing the predicates down to the star matching process.
+For a graph matching engine, the most fundamental problem is to determine the basic matching unit.
+Edges are the simplest matching units, however, intermediate results much larger than the data graph would be generated and result in costly join operations.
+To avoid excessive joins, authors use more complex structures i.e.,
+frequent subgraphs, multi-hop edges, or cliques as their matching unit~\cite{DBLP:conf/sigmod/HeS08,DBLP:conf/edbt/ZhangLY09,DBLP:journals/pvldb/QiaoZC17}.
+However these algorithms rely on super-linear indexes~\cite{DBLP:journals/pvldb/SunWWSL12}.
+To address this challenge, we make a balance by using stars to run graph matching.
+A star contains a root vertex and all the neighbors of the root.
+Useful filtering information such as degree, topology are kept together with the stars.
+Moreover, SeqStar is able optimize the star matching by performing predicate pushdown for WHERE clause.
+To the best of our knowledge, SeqStar is the first system that integrates the optimization of WHERE clause in the graph matching algorithm.
+
+The intermediate results grow exponentially with respect to the graph data.
+SeqStar adopts two more techniques to reduce the memory usage for the graph matching engine.
+(1) Instead of storing the intermediate results as conventional relationship tuples,
+SeqStar compresses the intermediate data by postponing costly Cartesian product and combine equivalent vertices together to store them only once.
+The compression ratio (uncompressed size over compressed size) of the algorithm can be as high as $3.6 \times 10^{10}$.
+(2) SeqStar performs pipeline join on compressed data directly, without generating new intermediate results.
+Instead of joining on the data one by one as the conventional binary join algorithm,
+the planner of SeqStar analyzes the intermediate data and generates a join order.
+Based on the join order, the executor performs parallel pipeline join to yield the final results in a stream manner.
 
 According to our experiments, SeqStar outperforms the state-of-the-art graph querying system Graphflow by up to $26\times$.
 And SeqStar can run the queries that Graphflow fails to run due to the out of memory problem.
