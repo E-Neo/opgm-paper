@@ -1,6 +1,39 @@
 \section{Related Work}
 Although the general property graph matching problem is seldom discussed in previous works,
 simple graph isomorphism problem has been widely studied.
+
+\textbf{Graph Query Engines}.
+\begin{table*}
+  \caption{Graph Query Engines}\label{tab:pushdown_lj}
+  \begin{tabular}{llrrrrr}
+    \toprule
+        {} & {} & \multicolumn{5}{c}{Support for Queries} \\
+        \cline{3-7}
+        Name & Platform & Directed & Undirected & Vertex Label & Edge Label & Multi-edges \\
+        \midrule
+        STwig\cite{DBLP:journals/pvldb/SunWWSL12}               & distributed & \textcolor{red}{\XSolidBrush} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{red}{\XSolidBrush} & \textcolor{red}{\XSolidBrush}\\
+        PSgL\cite{DBLP:conf/sigmod/ShaoCCMYX14}                 & distributed & \textcolor{red}{\XSolidBrush} & \textcolor{green}{\Checkmark} & \textcolor{red}{\XSolidBrush} & \textcolor{red}{\XSolidBrush} & \textcolor{red}{\XSolidBrush}\\
+        TwinTwig\cite{DBLP:journals/pvldb/LaiQLC15}             & distributed & \textcolor{red}{\XSolidBrush} & \textcolor{green}{\Checkmark} & \textcolor{red}{\XSolidBrush} & \textcolor{red}{\XSolidBrush} & \textcolor{red}{\XSolidBrush}\\
+        SEED\cite{DBLP:journals/pvldb/LaiQLZC16}                & distributed & \textcolor{red}{\XSolidBrush} & \textcolor{green}{\Checkmark} & \textcolor{red}{\XSolidBrush} & \textcolor{red}{\XSolidBrush} & \textcolor{red}{\XSolidBrush}\\
+        QFrag\cite{DBLP:conf/cloud/SerafiniMS17}                & distributed & \textcolor{red}{\XSolidBrush} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{red}{\XSolidBrush} & \textcolor{red}{\XSolidBrush}\\
+        VCBC/CBF\cite{DBLP:journals/pvldb/QiaoZC17}             & distributed & \textcolor{red}{\XSolidBrush} & \textcolor{green}{\Checkmark} & \textcolor{red}{\XSolidBrush} & \textcolor{red}{\XSolidBrush} & \textcolor{red}{\XSolidBrush}\\
+        Fractal\cite{DBLP:conf/sigmod/DiasTGM019}               & distributed & \textcolor{red}{\XSolidBrush} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{red}{\XSolidBrush} & \textcolor{red}{\XSolidBrush}\\
+        \midrule
+        Ullmann\cite{DBLP:journals/jacm/Ullmann76}              & in-memory   & \textcolor{red}{\XSolidBrush} & \textcolor{green}{\Checkmark} & \textcolor{red}{\XSolidBrush} & \textcolor{red}{\XSolidBrush} & \textcolor{red}{\XSolidBrush}\\
+        QuickSI\cite{DBLP:journals/pvldb/ShangZLY08}            & in-memory   & \textcolor{red}{\XSolidBrush} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{red}{\XSolidBrush} & \textcolor{red}{\XSolidBrush}\\
+        Turbo\textsubscript{ISO}\cite{DBLP:conf/sigmod/HanLL13} & in-memory   & \textcolor{red}{\XSolidBrush} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{red}{\XSolidBrush} & \textcolor{red}{\XSolidBrush}\\
+        Graphflow\cite{DBLP:journals/pvldb/MhedhbiS19}          & in-memory   & \textcolor{green}{\Checkmark} & \textcolor{red}{\XSolidBrush} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{red}{\XSolidBrush}\\
+        Neo4j                                                   & in-memory   & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark}\\
+        \midrule
+        \textsc{DualSim}\cite{DBLP:conf/sigmod/KimLBHLKJ16}     & out-of-core & \textcolor{red}{\XSolidBrush} & \textcolor{green}{\Checkmark} & \textcolor{red}{\XSolidBrush} & \textcolor{red}{\XSolidBrush} & \textcolor{red}{\XSolidBrush}\\
+        SeqStar                                                 & out-of-core & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark}\\
+        \bottomrule
+  \end{tabular}
+\end{table*}
+
+\textbf{Graph Storage}.
+
+\textbf{Graph Matching Algorithms}.
 Generally speaking, there are two kinds of graph isomorphism algorithms:
 
 The first is the tree-based searching method.
