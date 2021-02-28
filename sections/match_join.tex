@@ -12,12 +12,21 @@ The uniqueness of the root makes it possible to be the key of an index (SuperRow
 Given a root ID, the index returns the position of the corresponding SuperRow.
 Since the vertices are sorted in the storage engine, the SuperRow-index can be built by simply appending each root with the address of the corresponding SuperRow. The index is then naturally ordered to provide binary search.
 
-The planner of SeqStar first generates a join order based on the statistical information of SuperRows,
-i.e., row number, average size of image sets.
-The statistical information is obtained gotten updated after each SuperRow is appended.
+In order to make full use of the SuperRow-indexes and minimize the cost of join,
+the planner of SeqStar first generates a join order for the executor.
 Since the chosen root vertices form a connected vertex-cover (Algorithm~\ref{alg:decompose_stars}),
-the join order can ensure the root of the stars are bounded by previous stars.
+we can be ensure the root of the stars are bounded by previous stars.
 Therefore the SuperRow-indexes will always work.
+To further minimize the join cost, the planner travels through the vertex cover and generates a join order based on the statistical information of the obtained SuperRows.
+SeqStar prefers to firstly join on SuperRows with small row number and small average size of image sets.
+Note that the statistical information, i.e, row number, average size of image sets are updated after each SuperRow is appended.
+There is no extra cost to calculate these values.
+%% The planner of SeqStar first generates a join order based on the statistical information of SuperRows,
+%% i.e., row number, average size of image sets.
+%% The statistical information is obtained gotten updated after each SuperRow is appended.
+%% Since the chosen root vertices form a connected vertex-cover (Algorithm~\ref{alg:decompose_stars}),
+%% the join order can ensure the root of the stars are bounded by previous stars.
+%% Therefore the SuperRow-indexes will always work.
 %% For example, $T_1 \Join T_2 \Join \cdots \Join T_c$ (the discussion can be generalized to other join orders),
 %% where $T_i$ is the SuperRows of $S_i$, and the root of $S_i$ is $u_i$.
 %% SeqStar ensures $u_i \in V(S_{i-1})$ such that the Super-indexes will always work.
