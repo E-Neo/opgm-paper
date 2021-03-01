@@ -8,13 +8,13 @@ Figure~\ref{img:architecture} shows the workflow of SeqStar. There are mainly tw
 Both are specially designed to deal with the graph matching problem efficiently.
 
 Traditional graph storage engines such as used in graph databases store the in-edges and out-edges separately for each vertex.
-Because of the complexity in real-world property graphs,
+Because of the complexity in property graphs,
 such a storage method is not suitable and would incur many unnecessary random disk accesses.
 We develop a vertex-centric property storage model to store all information related to one vertex together to address the problem (\S\ref{sec:storage}).
 
 
 Based on the storage model,
-we propose an efficient property graph matching engine that is able to solve real-world graph matching problems (\S\ref{sec:match}).
+we propose an efficient property graph matching engine that is able to execute real-world complex queries (\S\ref{sec:match}).
 The core of the graph matching engine is the planner, which  decomposes the pattern into a series of stars.
 Compared with existing works, we take steps further by introducing
 (1) a matching result compression algorithm which reduces the cost of materializing intermediate results,
