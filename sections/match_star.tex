@@ -63,7 +63,7 @@ Existing decomposition algorithms~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:journ
 \end{figure}
 The edge $u_1 \rightarrow u_4$ is lost in $S_2'$.
 Therefore, vertex $10$ will be matched (Figure~\ref{img:running_example}) which is unnecessary.
-And the problem is more severe for complex patterns where more edges will be discarded.
+The problem is more severe for complex patterns where more edges need to be discarded.
 SeqStar addresses the problem by keeping the original pattern graph unchanged, and removing vertices/edges on a copy of the pattern (Algorithm~\ref{alg:decompose_stars}).
 The algorithm uses a heuristic function $f(u) = \frac{\deg(u) + |\psi(u)|}{\operatorname{freq}(u.label)}$ to select roots,
 where $\deg(u)$ is the degree of $u$, $|\psi(u)|$ is the number of constraints related to $u$ ($u_2 > u_1$, $u_3 > u_1$, $u_4 < 8$ in Figure~\ref{img:running_example}),
@@ -71,7 +71,8 @@ and $\operatorname{freq}(u.label)$ is the frequency of $u$'s label in the data g
 By maximizing the function $f$,
 SeqStar prefers vertex that
 (1) has a high degree and has more associated constraints,
-(2) has a less popular label in the data graph.
+(2) has a less popular label in the data graph. 
+%TODO:这里加讨论，这两条的点在之后的匹配中能够起到什么作用。
 
   %% Consider the pattern graph in Figure~\ref{img:star_decomposition},
   %% suppose that $u_1$, $u_2$ and $u_3$ are selected as the roots,
@@ -118,7 +119,7 @@ Given a star $S$, SeqStar first seeks the \textsc{VertexIter} by searching the g
 For each vertex $v$ in \textsc{VertexIter},
 SeqStar first checks the degree of $v$ and applies constraints if available (\S\ref{sec:match_optimize}) to determine whether $v$ could be matched.
 If $v$ passes these filters, SeqStar checks the neighbors of $v$ by visiting the \textsc{NeighborIter}.
-Since the iterators will only incur sequential disk accesses,
+Since the iterators will only incur sequential data accesses,
 the star matching process avoids the random disk seeks.
 
 SeqStar adopts two techniques to further reduce the I/O cost:
@@ -126,7 +127,7 @@ SeqStar adopts two techniques to further reduce the I/O cost:
 %% Some pattern may generate isomorphic stars, e.g., a triangle where each vertex has an edge point in and out.
 %% Though the general graph isomorphism problem is NP complete,
 %% the isomorphism of stars are much easier to check.
-We define an order for the vertices in a star based on vertex labels. The isomorphism among stars can be checked by comparing the sorted stars.
+We define an order for the vertices in a star based on the vertex labels. The isomorphism among stars can be checked by comparing the sorted stars.
 Isomorphic stars have the same matching results. They only need to match once.
 %and SeqStar will only match once for all.
 (2) SeqStar groups stars with the same vertex label,
