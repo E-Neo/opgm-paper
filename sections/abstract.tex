@@ -4,7 +4,6 @@
   Because of the complexity involving directions, multi-edges, labels in property graphs,
   optimizations aimed at simple graphs are not suitable to handle the storage and matching challenges of property graphs.
   Moreover, existing approaches rely on huge memory resources to run their system and hinder the adoption of the graph matching technology.
-  
   %popularity of graph technology.
 
   We present SeqStar, the first out-of-core property graph matching system that can execute real-world complex queries efficiently.
@@ -13,6 +12,8 @@
   SeqStar avoids the random disk access problem of existing work.
   In the graph matching engine, we propose a novel star decomposition algorithm that preserves all the relevant filtering information on stars.
   Therefore, SeqStar can filter out more unnecessary matchings in the early matching stages.
-  To reduce the memory usage, SeqStar compresses the intermediate results from star matching based on vertex equivalence class. SeqStar performs pipeline join on the compressed data.
+  To reduce the memory usage, SeqStar compresses the intermediate results from star matching by postponing Cartesian product and combining equivalent vertices.
   The WHERE clause is better supported by the predicate pushdown method for SeqStar to optimize real-world queries.
+  Extensive experiments show the superior performance of SeqStar over existing systems.
+  And SeqStar is able to run complex real-world queries existing work unable to run.
 \end{abstract}
