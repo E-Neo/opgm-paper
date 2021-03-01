@@ -37,6 +37,48 @@ The star matching time is reduced by $20\%$ --- $62\%$ in these experiments,
 and up to $8 \times 10^5 \times$ of unnecessary results are avoided.
 As a result, the total execution time obtains a speedup larger than 525$\times$.
 \begin{table}
+  \caption{Performance of Predicate Pushdown (EP)}\label{tab:pushdown_ep}
+  \begin{tabular}{lrrrrrr}
+    \toprule
+    $q$ & \parbox{5mm}{$T$ (sec)} & \parbox{5mm}{$T_{OPT}$ (sec)} & $\frac{T}{T_{OPT}}$ & $\#R$ & $\#R_{OPT}$ & $\frac{\#R}{\#R_{OPT}}$ \\
+    \midrule
+    4 & 1.086 &     0.107 &     10.15 & $1.7 \times 10^9$   &   $1.4 \times 10^6$ &            1284 \\
+    5 & 1.568 &     0.064 &     24.50 & $1.7 \times 10^{10}$ &   $5.3 \times 10^7$ &             324 \\
+    6 & 2.232 &     0.162 &     13.78 & $1.6 \times 10^8$  &        $1.9 \times 10^5$ &             851 \\
+    8 & 2.832 &     0.220 &     12.87 & $2.2 \times 10^{10}$ &   $9.3 \times 10^6$ &            2338 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}
+  \caption{Performance of Predicate Pushdown (GO)}\label{tab:pushdown_go}
+  \begin{tabular}{lrrrrrr}
+    \toprule
+    $q$ & \parbox{5mm}{$T$ (sec)} & \parbox{5mm}{$T_{OPT}$ (sec)} & $\frac{T}{T_{OPT}}$ & $\#R$ & $\#R_{OPT}$ & $\frac{\#R}{\#R_{OPT}}$ \\
+    \midrule
+    4 & 1.334 &     0.964 &     1.38 & $4.3\times10^7$ &           296 &               144090 \\
+    5 & 1.448 &     0.415 &     3.49 & $2.9 \times 10^8$ &           263 &              1113853 \\
+    6 & 2.185 &     1.668 &     1.31 & $6.8 \times 10^6$ &             0 & --- \\
+    8 & 1.883 &     1.708 &     1.10 & $1.3\times10^8$ &             0 & --- \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}
+  \caption{Performance of Predicate Pushdown (BS)}\label{tab:pushdown_bs}
+  \begin{tabular}{lrrrrrr}
+    \toprule
+    $q$ & \parbox{5mm}{$T$ (sec)} & \parbox{5mm}{$T_{OPT}$ (sec)} & $\frac{T}{T_{OPT}}$ & $\#R$ & $\#R_{OPT}$ & $\frac{\#R}{\#R_{OPT}}$ \\
+    \midrule
+    4 & 1.973 &     1.368 &     1.44 & $2.9 \times 10^9$ &        $3.7 \times 10 ^5$ &            7664 \\
+    5 & 2.037 &     0.545 &     3.74 & $3.1 \times 10^9$ &   $1.9 \times 10^6$ &            1634 \\
+    6 & 19.49 &     2.296 &     8.49 & $9.9 \times 10^9$ &        $72\times10^5$ &           13823 \\
+    8 & 9.714 &     2.378 &     4.08 & $5.6 \times 10^{10}$ &   $4.2 \times 10^6$ &           13322 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}
   \caption{Performance of Predicate Pushdown (LJ)}\label{tab:pushdown_lj}
   \begin{tabular}{lrrrrrr}
     \toprule
