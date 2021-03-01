@@ -139,14 +139,15 @@ the star matching process avoids the random disk seeks.
 SeqStar adopts two techniques to further reduce the I/O cost:
 (1) SeqStar analyzes the isomorphism among the stars to avoid redundant I/Os.
 %% Some pattern may generate isomorphic stars, e.g., a triangle where each vertex has an edge point in and out.
-%% Though the general graph isomorphism problem is NP complete,
-%% the isomorphism of stars are much easier to check.
+Though the general graph isomorphism problem is NP complete, the isomorphism of stars are much easier to check.
 We define an order for the vertices in a star based on the vertex labels. The isomorphism among stars can be checked by comparing the sorted stars.
 Isomorphic stars have the same matching results. They only need to match once.
 %and SeqStar will only match once for all.
-(2) SeqStar groups stars with the same vertex label,
+(2) As the disk scanning operation is time consuming, it is preferable to scan it only once when solving a property graph matching problem.
+SeqStar addresses the challenge by grouping stars with the same root label together,
 and matches them in a single \textsc{VertexIter}.
-Therefore, the graph data will be scanned only once.
+For each scanned vertex $v$, SeqStar will check all the star patterns with the same root label as $v$.
+Therefore, the graph data can be scanned only once without back and forth seeking.
 
 %% Since the real-world graphs are so large that it is preferable to scan it only once when solving a property graph matching problem.
 %% SeqStar solves the problem by grouping stars with the same root label together,

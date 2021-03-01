@@ -5,7 +5,7 @@ Many graph computing frameworks store graphs on disk using the double list metho
 storing the in-edges and out-edges \textbf{separately} in different lists for each vertex,
 via the compressed sparse column (CSC) and the compressed sparse row (CSR) format~\cite{DBLP:conf/sc/PearceGA10}.
 %TODO:分别简述一下CSC和CSR都是怎么做的
-However, this separation incurs excessive random access on real-world property graph because we need to get the information for in/out edges during pattern matching.
+However, this separation incurs excessive random access on property graphs because we need to get the information for in/out edges during pattern matching.
 
 Instead, SeqStar stores the graph data in a vertex-centric way which stores all the information related to one vertex \textbf{together}.
 With small indexes on disks, one can quickly get the correct addresses of relevant data on disk during pattern matching. Because all the related information is stored together, SeqStar can make sure that all disk reads are sequential.
@@ -27,7 +27,7 @@ In order to determine whether vertex $1$ could match $u_1$,
 one has to scan the in-edges (or equally, the out-edges) of vertex $1$ and then check whether the visited neighbor is in the out-edges (or in-edges) list.
 Such a scan-and-check method would significantly slow down the graph matching process,
 because the checking process results in many random disk reads.
-For real world power-law graphs such as social media graphs, where the celebrities or trending topics have a huge amount of followers, this phenomenon greatly exacerbate the random access problem.
+For large power-law graphs such as social media graphs, where the celebrities or trending topics have a huge amount of followers, this phenomenon greatly exacerbate the random access problem.
 %the in/out-edges lists stored on disk have to be swapped in and out frequently during the scan and check process as a result of the random disk access pattern.
 %% Multiple edges between $u_1$ and $u_2$ make things even worse.
 %And it would be more complicated if there are more than two edges between $u_1$ and $u_2$ in the pattern graph.
