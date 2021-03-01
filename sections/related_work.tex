@@ -43,7 +43,7 @@ Graphflow is able to match directed pattern graphs with both vertex labels and e
 \textbf{Graph Storage}.
 To the best of our knowledge,
 most graph storage engines stores the in/out-edges separately.
-\textcolor{red}{Compressed sparse raw (CSR) storage format stores the forward adjacency sets on disk. The out-edges of each vertex are stored consecutively on disk and can be loaded efficiently~\cite{DBLP:conf/sc/PearceGA10}. In order to load in-edges fast, compressed sparse column (CSC) was proposed by storing the in-edges consecutively~\cite{DBLP:conf/osdi/KyrolaBG12}.}
+Compressed sparse raw (CSR) storage format stores the forward adjacency sets on disk. The out-edges of each vertex are stored consecutively on disk and can be loaded efficiently~\cite{DBLP:conf/sc/PearceGA10}. In order to load in-edges fast, compressed sparse column (CSC) was proposed by storing the in-edges consecutively~\cite{DBLP:conf/osdi/KyrolaBG12}.
 Graphflow~\cite{DBLP:journals/pvldb/MhedhbiS19} uses backward/forward adjacency lists to store in/out edges in memory.
 Neo4j also stores the graph in the adjacency list manner.
 And edges are grouped by their labels in order to seek to relevant edges efficiently.
