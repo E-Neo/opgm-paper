@@ -1,16 +1,18 @@
 \begin{abstract}
-  Property graph matching is the most important operation of graph database and has a wide range of applications.
-  The problem has been studied extensively, however, on oversimplified graph models.
+  Property graph matching is one of the most important operations of graph databases and has a wide range of applications.
+  The problem has been studied extensively, however, on simplified graph models.
   Because of the complexity involving directions, multi-edges, labels in property graphs,
-  optimizations aimed at simple graphs are not suitable to handle the storage and matching problem of property graphs.
-  Moreover, existing approaches rely on huge memory resources to run their system and hinder the popularity of graph technology.
+  optimizations aimed at simple graphs are not suitable to handle the storage and matching challenges of property graphs.
+  Moreover, existing approaches rely on huge memory resources to run their system and hinder the adoption of the graph matching technology.
+  
+  %popularity of graph technology.
 
   We present SeqStar, the first out-of-core property graph matching system that can execute real-world complex queries efficiently.
   The storage engine of SeqStar uses a novel \emph{vertex-centric} storage model.
-  By storing necessary information together with the vertices,
+  By storing necessary information associated with one vertex together,
   SeqStar avoids the random disk access problem of existing work.
   In the graph matching engine, we propose a novel star decomposition algorithm that preserves all the relevant filtering information on stars.
-  Therefore, SeqStar can filter out more unnecessary matchings in the very beginning.
-  To reduce the memory usage, SeqStar compresses the intermediate results from star matching and performs pipeline join on the compressed data.
-  Moreover, we propose a predicate pushdown method for SeqStar to optimize real-world queries.
+  Therefore, SeqStar can filter out more unnecessary matchings in the early matching stages.
+  To reduce the memory usage, SeqStar compresses the intermediate results from star matching based on vertex equivalence class. SeqStar performs pipeline join on the compressed data.
+  The WHERE clause is better supported by the predicate pushdown method for SeqStar to optimize real-world queries.
 \end{abstract}
