@@ -24,7 +24,9 @@ Moreover, users usually provide extra searching conditions via the WHERE clause~
 %(1) the storage engine designed for simple graph may encounter superfluous random disk reads when matching a property graph;
 %(2) the optimizations aimed at simple graph usually rely heavily on the equivalence of vertices~\cite{DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/QiaoZC17}, which is harder to find in a property graph because of the complexity of directions and labels.
 
-Existing algorithms rely on main memory for their computation. It is extremely uneconomic for property graph matching problem. The memory needs to hold not only the graph data but also the intermediate results which grow exponentially with respect to the size of graph data. Our experiment shows that a graph with $6.9 \times 10^{7}$ edges could generate $1.7 \times 10^{13}$ rows of matching results.
+Existing algorithms rely on main memory for their computation. It is extremely uneconomic for property graph matching problem. The memory needs to hold not only the graph data but also the intermediate results.
+And the intermediate results grow exponentially with respect to the size of graph data due to the costly Cartesian product.
+Our experiment shows that a graph with $6.9 \times 10^{7}$ edges could generate $1.7 \times 10^{13}$ rows of matching results.
 %(1) The memory needs to hold not only the data graph, but also the intermediate result which grows exponentially with respect to the size of the data graph, as our experiment shows that a graph with $6.9 \times 10^{7}$ edges could generate $1.7 \times 10^{13}$ rows of matching results.
 Existing systems~\cite{DBLP:conf/sosp/TeixeiraFSSZA15,DBLP:conf/sigmod/DiasTGM019,DBLP:journals/pvldb/MhedhbiS19} require hundreds of GB of memory to process such graphs. Therefore, we resort to use external memory (such as SSDs) to support property graph matching.
 %(2) For distributed approaches, on the one hand it is hard to partition the graph across cluster machines to minimize the communication cost~\cite{DBLP:journals/im/LeskovecLDM09} and have performance problems~\cite{DBLP:conf/sigmod/KimLBHLKJ16},
