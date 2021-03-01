@@ -17,49 +17,53 @@ However, there are two gaps that hinder these algorithms from being widely adopt
 The property graph is the de facto graph model for real-world graph matching problems.
 A property graph is a directed graph with labels attached to vertices and edges.
 There may be multiple edges connecting two vertices and even edges for self-loop (edges connecting back to their source vertices).
-Moreover, users usually provide extra searching conditions via the WHERE clause~\cite{DBLP:journals/csur/AnglesABHRV17}. However,  current studies mostly deal with simple graph models such as ignoring the directions, labels, or multi-edges. WHERE clause is not considered either~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:conf/sigmod/HanLL13,DBLP:conf/sigmod/KimLBHLKJ16,DBLP:journals/pvldb/QiaoZC17,DBLP:journals/pvldb/MhedhbiS19}. The optimizations aimed at simple graphs usually heavily rely on the equivalence of vertices~\cite{DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/QiaoZC17}, which is harder to find in a property graph because of the complexity of directions and labels. Moreover, in the implementation level, the storage engine designed for simple graph models encounters excessive random disk seeks when matching a real-world property graph.
+Moreover, users usually provide extra searching conditions via the WHERE clause~\cite{DBLP:journals/csur/AnglesABHRV17}. 
+
+However,  current studies mostly deal with simple graph models such as ignoring the directions, labels, or multi-edges. WHERE clause is not considered either~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:conf/sigmod/HanLL13,DBLP:conf/sigmod/KimLBHLKJ16,DBLP:journals/pvldb/QiaoZC17,DBLP:journals/pvldb/MhedhbiS19}. The optimizations aimed at simple graphs usually heavily rely on the equivalence of vertices~\cite{DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/QiaoZC17}, which is harder to find in a property graph because of the complexity of directions and labels. Moreover, in the implementation level, the storage engine designed for simple graph models encounters excessive random disk seeks when matching a real-world property graph.
 
 %This limitation is not only a matter of engineering,
 %but also a serious algorithm problem:
 %(1) the storage engine designed for simple graph may encounter superfluous random disk reads when matching a property graph;
 %(2) the optimizations aimed at simple graph usually rely heavily on the equivalence of vertices~\cite{DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/QiaoZC17}, which is harder to find in a property graph because of the complexity of directions and labels.
 
-Existing algorithms rely on main memory for their computation. It is extremely uneconomic for property graph matching problem. The memory needs to hold not only the graph data but also the intermediate results which grow exponentially with respect to the size of graph data. Our experiment shows that a graph with $6.9 \times 10^{7}$ edges could generate $1.7 \times 10^{13}$ rows of matching results.
+Existing algorithms rely on main memory for graph matching. The memory needs to hold not only the graph data but also the intermediate results which grow exponentially with respect to the size of graph data.
+Our experiment shows that a graph with $6.9 \times 10^{7}$ edges could generate $1.7 \times 10^{13}$ rows of matching results.   
 %(1) The memory needs to hold not only the data graph, but also the intermediate result which grows exponentially with respect to the size of the data graph, as our experiment shows that a graph with $6.9 \times 10^{7}$ edges could generate $1.7 \times 10^{13}$ rows of matching results.
-Existing systems~\cite{DBLP:conf/sosp/TeixeiraFSSZA15,DBLP:conf/sigmod/DiasTGM019,DBLP:journals/pvldb/MhedhbiS19} require hundreds of GB of memory to process such graphs. Therefore, we resort to use external memory (such as SSDs) to support property graph matching.
+Existing systems~\cite{DBLP:conf/sosp/TeixeiraFSSZA15,DBLP:conf/sigmod/DiasTGM019,DBLP:journals/pvldb/MhedhbiS19} require hundreds of GB of memory to process such graphs. 
+Due to the huge intermediate result memory consumption, it is extremely uneconomic for property graph matching problem to directly run in main memory. Therefore, we resort to use external memory (such as SSDs) to support property graph matching.
 %(2) For distributed approaches, on the one hand it is hard to partition the graph across cluster machines to minimize the communication cost~\cite{DBLP:journals/im/LeskovecLDM09} and have performance problems~\cite{DBLP:conf/sigmod/KimLBHLKJ16},
 %one the other hand it is inconvenient and costly for the end user to maintain the cluster nodes~\cite{DBLP:conf/osdi/KyrolaBG12}.
 
-This paper proposes SeqStar (Seq-ential store and Star-matching), a high performance out-of-core property graph matching system for real-world graphs, which scans the disk sequentially by matching stars (a star contains a root vertex and some leaves which are the neighbors of the root).
+This paper proposes SeqStar (\emph{Seq}-ential store and \emph{Star}-matching), a high performance out-of-core property graph matching system for real-world graphs, which scans the disk sequentially by matching stars (a star contains a root vertex and some leaves which are the neighbors of the root).
 
 %Therefore, in order to match up with the need of real-world problems,a high performance disk-based property graph matching system is desirable.
 
 \subsection*{Contributions}
-There are two fundamental components in SeqStar:
+There are two main building blocks in SeqStar:
 the graph storage engine and the graph matching engine. Both are designed specificly to deal with the graph machine problem efficiently.
 
-The storage engine in SeqStar uses the \emph{vertex-centric storage model} which stores the information related to a specific vertex together.
+The storage engine in SeqStar uses the \emph{vertex-centric storage model} which stores all information related to a specific vertex \emph{together}.
 The conventional way to store graphs is the compressed sparse row (CSR) and compressed sparse column (CSC) approach which stores in/out-edges \emph{separately}~\cite{DBLP:conf/sc/PearceGA10,DBLP:conf/osdi/KyrolaBG12}.
 CSR is equivalent to storing the graph as adjacency list: the out-edges are stored consecutively on disk.
 And CSC stores the in-edges in a similar manner.
 In contrast, SeqStar stores the graph data by storing the in/out-edges \emph{together} with the neighbors of each vertex.
 With small indexes on disks, pattern matching can quickly get the correct address of relevant data on disk during pattern matching.
-We also provide two convenient iterator interfaces to interact with the storage engine.
-As a result, SeqStar can avoid random disk seeks and perform graph matching in a sequential disk scan.
+We also provide two convenient iterators to interact with the storage engine.
+As a result, SeqStar can avoid random disk seeks and perform graph matching in one sequential disk scan.
 
-For a graph matching engine, the most fundamental problem is to determine the basic matching unit.
-Edges are the simplest matching units, however, intermediate results much larger than the data graph would be generated and result in costly join operations.
-To avoid excessive joins, authors use more complex structures i.e.,
+For the graph matching engine, the most fundamental problem is to determine the basic matching unit.
+Edges are the straightforward and simplest matching units. However, intermediate results by matching based on edges might be much larger than the data graph itself. The huge intermediate results also incur costly join operations.
+To avoid excessive joins, existing works use more complex structures i.e.,
 frequent subgraphs, multi-hop edges, or cliques as their matching unit~\cite{DBLP:conf/sigmod/HeS08,DBLP:conf/edbt/ZhangLY09,DBLP:journals/pvldb/QiaoZC17}.
 However these algorithms rely on super-linear indexes~\cite{DBLP:journals/pvldb/SunWWSL12}.
-To address this challenge, we make a balance by using stars to run graph matching.
+To address this challenge, we take a new approach to use stars to run graph matching.
 A star contains a root vertex and all the neighbors of the root.
-Useful filtering information such as degree, topology are kept together with the stars.
+Useful filtering information such as degrees, topologies are kept together within the stars.
 Moreover, SeqStar is able optimize the star matching by performing predicate pushdown for WHERE clause.
 To the best of our knowledge, SeqStar is the first system that integrates the optimization of WHERE clause in the graph matching algorithm.
 
-The intermediate results grow exponentially with respect to the graph data.
-SeqStar adopts two more techniques to reduce the memory usage for the graph matching engine.
+Usually during matching, the intermediate results grow exponentially with respect to the graph data.
+SeqStar adopts two techniques to reduce the memory usage for the graph matching engine.
 (1) Instead of storing the intermediate results as conventional relationship tuples,
 SeqStar compresses the intermediate data by postponing costly Cartesian product and combine equivalent vertices together to store them only once.
 The compression ratio (uncompressed size over compressed size) of the algorithm can be as high as $3.6 \times 10^{10}$.
@@ -70,8 +74,8 @@ Based on the join order, the executor performs parallel pipeline join to yield t
 
 According to our experiments, SeqStar outperforms the state-of-the-art graph querying system Graphflow by up to $26\times$.
 And SeqStar can run the queries that Graphflow fails to run due to the out of memory problem.
-For complex property graphs that existing academic researches do not support,
-we compare SeqStar with industrial graph database Neo4j, and achieved over $2100\times$ speedup.
+For complex property graphs that existing works do not support,
+SeqStar outperforms industrial graph database Neo4j with over $2100\times$ speedup.
 %To reduce memory usage, we make the following contributions:
 %(1) a novel star decomposition algorithm that keeps all the useful filtering information in stars,
 %(2) a novel compression algorithm for stars' matching results by postponing Cartesian production and digging equivalence classes,
