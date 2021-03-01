@@ -50,14 +50,14 @@ No random disk access appears during the whole process.
 %Despite of the fact that the size of the whole data graph could be gigantic,we may only care a fraction of the graph by specify the labels in our query for a concrete graph matching problem.
 There are two basic operations provided by the graph storage engine:
 (1) Given a data vertex, retrieve its neighbors with a specific label;
-(2) Given a vertex label, retrieve the vertices with the label. In the implementation level, the first operation is supported by \emph{local index} and the second operation is supported by \emph{global index}.
+(2) Given a vertex label, retrieve the vertices with the label. In the implementation level, the first operation is supported by the \emph{local index} and the second operation is supported by the \emph{global index}.
 %% In the following paragraphs, we'll show how to make the two operations efficiently by adding a few simple but efficient indices to the vertex-centric storage engine,
 %% which reduces the searching space and I/O significantly.
 
 Consider the data graph in Figure~\ref{img:running_example}.
 One may want to study only the relationships among users.
 For vertex $1$ in the figure,
-no matter how much social media she has published or viewed we could just ignore all of them in this specific problem.
+no matter how much social media she has published or viewed, we could just ignore all of them in this specific problem.
 %% A straightforward idea is to group the neighbor vertices with the same label together when storing the vertices.
 %% However, if the neighbor vertices were stored in the traditional in/out-edge double lists method,
 %% we have to group them twice and then still face the information insufficient problem as we discussed in the previous subsection.
@@ -92,8 +92,8 @@ The size of the global index is the same as the number of vertex labels ($l$). T
 %%   \caption{The storage structure overview of the data graph in Figure~\ref{img:celebrity_star}.}\label{img:data_vertices}
 %% \end{figure}
 \subsection{Iterators over Graph Storage}\label{sec:storage_iterators}
-For applications that need to perform the two basic operations (visiting vertices and visiting the neighbors),
-we define two iterators as the interface to visit the data graph:
+Applications need to perform two basic operations (visiting vertices and visiting the neighbors) on the graph data storage.
+We define two iterators as the interface to visit the data graph:
 \begin{enumerate}[noitemsep]
 \item \textsc{VertexIter} iterates the vertices with the given label, ordered by vertex IDs\@.
 %Given a vertex label, it iterates through the vertices with the specified label ordered by the ID of vertices;
