@@ -6,7 +6,7 @@ $S_1$ will generate 28 rows of intermediate results and $S_2$ will generate 8 ro
 And we need $4 \times (28 + 8) = 144$ integers to store them, which is larger than the data graph (10 vertices, 20 edges).
 Inspired by the vertex-cover based compression algorithm~\cite{DBLP:journals/pvldb/QiaoZC17},
 SeqStar postpones the costly Cartesian product and leveraging equivalence classes among vertices to reduce the size of intermediate results.}
-Moreover, we design an on-disk layout that is able to write the compressed data sequentially.
+\textcolor{red}{Moreover, we design an compact layout that is able to write the compressed data sequentially.}
 
 Two techniques are used to compress the intermediate results:
 (1) Like VCBC, SeqStar avoids the Cartesian product in the intermediate results.
@@ -25,14 +25,14 @@ The matching results of the vertices are the same, and SeqStar stores their imag
 \begin{figure}[ht]
   \centering
   \includegraphics[width=0.45\textwidth]{img/compress.pdf}
-  \caption{On-disk layout of the compressed intermediate results.}\label{img:compress}
+  \caption{Layout of the compressed intermediate results.}\label{img:compress}
 \end{figure}
 
-Figure~\ref{img:compress} shows the SuperRows' on-disk layout.
+Figure~\ref{img:compress} shows the SuperRows' layout.
 In each SuperRow, the matched vertices are stored consecutively.
 Metadata $(pos_i, \#eqv_i)$, $ 1 \le i \le k$, are used to store the image sets for each neighbor equivalence class.
 
-\textcolor{red}{In order to reduce the I/O cost for storing SuperRows, matched vertices from the \textsc{NeighborIter} will be appended to the SuperRow file.}
+\textcolor{red}{In order to reduce the I/O cost for storing SuperRows, matched vertices from the \textsc{NeighborIter} will be appended to the SuperRow file. However, leaves with the same color in a star may belong to different neighbor equivalence classes if the connections to the root are different. For example, $u_2$ and $u_3$ will be different if the edge $u_2 \rightarrow$in Figure~\ref{img:running_example}}
 
 %% VCBC groups the matching results by the vertex-cover and stores the matched vertices in \emph{image sets}.
 %% The original data can be restored by doing Cartesian product on the image sets.
