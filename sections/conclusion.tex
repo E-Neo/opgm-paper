@@ -1,14 +1,16 @@
 \section{Conclusion}\label{sec:conclusion}
 This paper proposes SeqStar, which is the first out-of-core property graph matching system.
-For the graph storage engine, we propose the novel vertex-centric storage model.
-The storage engine avoids the random disk access problem by visiting vertices via the convenient iterators.
-And small indexes are designed to further minimize the number of I/Os.
+SeqStar uses the vertex-centric storage engine to store the information related to one vertex together. 
+This storage engine avoids the random disk access problemand provides the convenient iterators for programs to visit the required vertices.
+Small indexes are designed to further minimize the number of IO operations.
 For the graph matching engine,
-SeqStar uses a novel star decompression algorithm that preserves as much filtering information as possible.
+SeqStar uses a novel star decomposition algorithm that preserves as much filtering information as possible in decomposed stars from the pattern graph.
 Predicate pushdown is applied to further reduce unnecessary matchings.
 In order to reduce the memory usage, SeqStar compresses the intermediate results by postponing Cartesian product and combining equivalent vertices.
 And SeqStar performs parallel pipeline join on the compressed data to avoid unnecessary intermediate results.
-Experimental results demonstrate that SeqStar outperforms existing work and is able to run more complex property graph queries within less memory usage.
+Experimental results demonstrate that SeqStar outperforms existing work and is able to run more complex property graph queries with less memory consumption.
+
+
 Currently, SeqStar lacks a transaction engine to handle dynamic graphs.
 This limitation gives us directions for future work,
 and we are now working on implementing the vertex-centric storage model in RDBMS to embrace the power of the half-century-year-old mature technology.
