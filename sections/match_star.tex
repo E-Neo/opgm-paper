@@ -49,7 +49,7 @@
 %%   For one thing, it is a hard engineering problem, because the traditional underlying graph storage method is not suitable for property graphs (Section~\ref{sec:storage}).
 %%   For another, many existing work rely on the perfect isotropic properties of a simple graph to operate and optimize their algorithms~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/QiaoZC17}.
 SeqStar uses a novel star decomposition algorithm that preserves as much matching information as possible.
-It also harness the star isomorphism to scan the graph data sequentially and only once.
+It also harness the star isomorphism to scan the graph data sequentially for only once.
 
 %On top of the vertex-centric storage engine, SeqStar reduces the I/O cost by analyzing star isomorphism and scanning the graph data sequentially only once.
 
