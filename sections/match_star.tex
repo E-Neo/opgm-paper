@@ -65,7 +65,7 @@ The edge $u_1 \rightarrow u_4$ is lost in $S_2'$.
 Therefore, vertex $10$ will be matched (Figure~\ref{img:running_example}) which is unnecessary.
 The problem is more severe for complex patterns where more edges need to be discarded.
 
-\textcolor{red}{SeqStar addresses the problem by keeping the original pattern graph unchanged, and removing vertices/edges on a copy $p'$ of the pattern (Algorithm~\ref{alg:decompose_stars}).
+SeqStar addresses the problem by keeping the original pattern graph unchanged, and removing vertices/edges on a copy $p'$ of the pattern (Algorithm~\ref{alg:decompose_stars}).
 Algorithm~\ref{alg:decompose_stars} is similar to the vertex-cover selection algorithm~\cite{DBLP:books/daglib/0023376}.
 The set $R$ in Algorithm~\ref{alg:decompose_stars} stores the candidate root vertices.
 The algorithm uses a heuristic function: \[f(u) = \frac{\deg(u) + |\psi(u)|}{\operatorname{freq}(u.label)}\] to select roots,
@@ -81,7 +81,7 @@ By doing so, the roots selected by Algorithm~\ref{alg:decompose_stars} will be c
 And we'll use this property to build index for join operations (\S~\ref{sec:match_join}).
 Finally, SeqStar uses the selected root to extract stars from the original pattern graph $p$.
 $\operatorname{Star}(p, root)$ is obtained by copying all the edges connected with $root$.
-Therefore, all the structural information of $p$ is inherited to the stars.}
+Therefore, all the structural information of $p$ is inherited to the stars.
 %TODO:这里加讨论，这两条的点在之后的匹配中能够起到什么作用。
 
   %% Consider the pattern graph in Figure~\ref{img:star_decomposition},
@@ -125,7 +125,7 @@ Therefore, all the structural information of $p$ is inherited to the stars.}
   }
 \end{algorithm}
 
-\textcolor{red}{To match a star $S$ on the vertex-centric storage engine,
+To match a star $S$ on the vertex-centric storage engine,
 SeqStar firstly seeks the \textsc{VertexIter} by searching the global index of the storage engine.
 For each vertex $v$ in \textsc{VertexIter},
 SeqStar checks the degree of $v$ and applies constraints if available (\S\ref{sec:match_optimize}) to determine whether $v$ could be matched.
@@ -134,9 +134,9 @@ For each neighbor vertex $n$ in \textsc{NeighborIter},
 the in/out-edges associated with $n$ is compared to the corresponding leaf vertex of the star pattern.
 The constraints extract from the WHERE clause will be applied to filter out unnecessary $n$ (\S\ref{sec:match_optimize}).
 Since the iterators will only incur sequential data accesses,
-the star matching process avoids the random disk seeks.}
+the star matching process avoids the random disk seeks.
 
-\textcolor{red}{SeqStar adopts two techniques to further reduce the I/O cost:
+SeqStar adopts two techniques to further reduce the I/O cost:
 (1) SeqStar analyzes the isomorphism among the stars to avoid redundant I/Os.
 %% Some pattern may generate isomorphic stars, e.g., a triangle where each vertex has an edge point in and out.
 Though the general graph isomorphism problem is NP complete, the isomorphism of stars are much easier to check.
@@ -148,7 +148,7 @@ SeqStar addresses the challenge by grouping stars with the same root label toget
 and matches them in a single \textsc{VertexIter}.
 For each scanned vertex $v$, SeqStar will check all the star patterns with the same root label as $v$.
 Therefore, the graph data can be scanned only once without back and forth seeking.
-}
+
 %% Since the real-world graphs are so large that it is preferable to scan it only once when solving a property graph matching problem.
 %% SeqStar solves the problem by grouping stars with the same root label together,
 %% and scans these stars together by iterating through the \textsc{VertexIter}.
