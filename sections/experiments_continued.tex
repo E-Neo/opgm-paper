@@ -24,7 +24,7 @@ The analyzer of SeqStar will analyze the WHERE clause and obtain:
 (1) a vertex-constraint `$u_1 \bmod 5 = 0$' and (2) an edge-constraint `$u_2 \bmod u_1 = 5$' (\S\ref{sec:match_optimize}).
 These constraints can be applied during the star matching process.
 
-Table~\ref{tab:pushdown_lj} and Table~\ref{tab:pushdown_ok} illustrate the effects of predicate pushdown on LJ and OK\@.
+Table~\ref{tab:pushdown_ep},\ref{tab:pushdown_go},\ref{tab:pushdown_bs},\ref{tab:pushdown_lj},\ref{tab:pushdown_ok} illustrate the effects of predicate pushdown.
 $T$ is the execution time with the optimization, i.e., the constraints have to be checked after the graph isomorphism result is obtained.
 $T_{OPT}$ is the execution time with predicate pushdown.
 $\#R$ is the result size (number of rows) for the queries without the WHERE clause and $\#R_{OPT}$ is the number of rows with WHERE clause applied.
