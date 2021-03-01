@@ -6,7 +6,7 @@
 %% To address this problem, we propose a indexed pipeline join algorithm on compressed data:
 SeqStar reduces the memory usage further by performing pipeline join on compressed data.
 
-To boost the join operation, we design an index on the SuperRow data.
+To boost the join operation, we design an index for the SuperRow data.
 Consider the SuperRow layout in Figure~\ref{img:compress}, each SuperRow contains only one root.
 The uniqueness of the root makes the root ID to be the key of an index (SuperRow-index).
 Given a root ID, the SuperRow-index returns the position of the corresponding SuperRow.
