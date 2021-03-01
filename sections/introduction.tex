@@ -7,7 +7,7 @@ such as Twitter's recommendation systems~\cite{DBLP:journals/pvldb/GuptaSGGZLL14
 electronic computer-aided design~\cite{DBLP:conf/dac/OhlrichEGS93},
 and protein-protein interaction (PPI) networks~\cite{milenkovic2008uncovering}.
 Nowadays, users of industrial graph databases such as Neo4j\footnote{\url{https://neo4j.com}}
-can easily model data as property graphs and expressing their queries via the Cypher~\cite{DBLP:conf/sigmod/FrancisGGLLMPRS18} query language.
+can easily model data as property graphs and expressing their queries via the Cypher~\cite{DBLP:conf/sigmod/FrancisGGLLMPRS18,DBLP:journals/pvldb/SahuMSLO17} query language.
 Although it is convenient to use, the matching process of these industrial graph databases are time and resource consuming.
 Many novel subgraph matching algorithms have been proposed~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:conf/sigmod/HanLL13,DBLP:conf/sigmod/ShaoCCMYX14,DBLP:conf/cloud/SerafiniMS17,DBLP:journals/pvldb/QiaoZC17,DBLP:conf/sigmod/DiasTGM019}, with even orders of magnitude of speedup compared to the industrial graph databases.
 However, there are two gaps that hinder these algorithms from being widely adopted in the real-world scenarios:
@@ -17,7 +17,7 @@ However, there are two gaps that hinder these algorithms from being widely adopt
 The property graph is the de facto graph model for real-world graph matching problems.
 A property graph is a directed graph with labels attached to vertices and edges.
 There may be multiple edges connecting two vertices and even edges for self-loop (edges connecting back to their source vertices).
-Moreover, users usually provide extra searching conditions via the WHERE clause~\cite{DBLP:journals/csur/AnglesABHRV17}. 
+Moreover, users usually provide extra searching conditions via the WHERE clause~\cite{DBLP:journals/csur/AnglesABHRV17}.
 
 However,  current studies mostly deal with simple graph models such as ignoring the directions, labels, or multi-edges. WHERE clause is not considered either~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:conf/sigmod/HanLL13,DBLP:conf/sigmod/KimLBHLKJ16,DBLP:journals/pvldb/QiaoZC17,DBLP:journals/pvldb/MhedhbiS19}. The optimizations aimed at simple graphs usually heavily rely on the equivalence of vertices~\cite{DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/QiaoZC17}, which is harder to find in a property graph because of the complexity of directions and labels. Moreover, in the implementation level, the storage engine designed for simple graph models encounters excessive random disk seeks when matching a real-world property graph.
 
@@ -27,9 +27,9 @@ However,  current studies mostly deal with simple graph models such as ignoring 
 %(2) the optimizations aimed at simple graph usually rely heavily on the equivalence of vertices~\cite{DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/QiaoZC17}, which is harder to find in a property graph because of the complexity of directions and labels.
 
 Existing algorithms rely on main memory for graph matching. The memory needs to hold not only the graph data but also the intermediate results which grow exponentially with respect to the size of graph data.
-Our experiment shows that a graph with $6.9 \times 10^{7}$ edges could generate $1.7 \times 10^{13}$ rows of matching results.   
+Our experiment shows that a graph with $6.9 \times 10^{7}$ edges could generate $1.7 \times 10^{13}$ rows of matching results.
 %(1) The memory needs to hold not only the data graph, but also the intermediate result which grows exponentially with respect to the size of the data graph, as our experiment shows that a graph with $6.9 \times 10^{7}$ edges could generate $1.7 \times 10^{13}$ rows of matching results.
-Existing systems~\cite{DBLP:conf/sosp/TeixeiraFSSZA15,DBLP:conf/sigmod/DiasTGM019,DBLP:journals/pvldb/MhedhbiS19} require hundreds of GB of memory to process such graphs. 
+Existing systems~\cite{DBLP:conf/sosp/TeixeiraFSSZA15,DBLP:conf/sigmod/DiasTGM019,DBLP:journals/pvldb/MhedhbiS19} require hundreds of GB of memory to process such graphs.
 Due to the huge intermediate result memory consumption, it is extremely uneconomic for property graph matching problem to directly run in main memory. Therefore, we resort to use external memory (such as SSDs) to support property graph matching.
 %(2) For distributed approaches, on the one hand it is hard to partition the graph across cluster machines to minimize the communication cost~\cite{DBLP:journals/im/LeskovecLDM09} and have performance problems~\cite{DBLP:conf/sigmod/KimLBHLKJ16},
 %one the other hand it is inconvenient and costly for the end user to maintain the cluster nodes~\cite{DBLP:conf/osdi/KyrolaBG12}.

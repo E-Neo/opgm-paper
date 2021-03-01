@@ -54,10 +54,10 @@ Generally speaking, there are two kinds of graph isomorphism algorithms:
 
 The first is the tree-based searching method.
 Inspired by Ullmann's backtracking algorithm~\cite{DBLP:journals/jacm/Ullmann76},
-many enhancements have been proposed providing different searching order, filter rules, and indexes~\cite{DBLP:journals/pami/CordellaFSV04,DBLP:journals/pvldb/ShangZLY08,DBLP:conf/sigmod/HeS08,DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/LeeHKL12}.
+many enhancements have been proposed providing different searching order, filter rules, and indexes~\cite{DBLP:journals/pami/CordellaFSV04,DBLP:journals/pvldb/ShangZLY08,DBLP:conf/sigmod/HeS08,DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/ZhaoH10,DBLP:journals/pvldb/LeeHKL12}.
 However, these algorithms are not suitable for out-of-core systems as random disk seeks are unavoidable.
 
-The second is the join-based algorithm~\cite{DBLP:journals/pvldb/LaiQLC15,DBLP:journals/pvldb/QiaoZC17,DBLP:journals/pvldb/SunWWSL12,DBLP:journals/pvldb/MhedhbiS19,DBLP:journals/pvldb/MhedhbiS19}.
+The second is the join-based algorithm~\cite{DBLP:journals/pvldb/LaiQLC15,DBLP:journals/pvldb/QiaoZC17,DBLP:journals/pvldb/SunWWSL12,DBLP:journals/pvldb/MhedhbiS19,DBLP:journals/pvldb/LinMPS16,DBLP:journals/pvldb/AmmarMSJ18}.
 These algorithms split the pattern graph into smaller units,
 and materialize the intermediate results.
 The final result is obtained by joining on these intermediate results.

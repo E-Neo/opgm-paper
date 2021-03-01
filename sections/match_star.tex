@@ -139,7 +139,7 @@ the star matching process avoids the random disk seeks.
 SeqStar adopts two techniques to further reduce the I/O cost:
 (1) SeqStar analyzes the isomorphism among the stars to avoid redundant I/Os.
 %% Some pattern may generate isomorphic stars, e.g., a triangle where each vertex has an edge point in and out.
-Though the general graph isomorphism problem is NP complete, the isomorphism of stars are much easier to check.
+Though the general graph isomorphism problem is NP complete~\cite{DBLP:conf/stoc/Cook71}, the isomorphism of stars are much easier to check.
 We define an order for the vertices in a star based on the vertex labels. The isomorphism among stars can be checked by comparing the sorted stars.
 Isomorphic stars have the same matching results. They only need to match once.
 %and SeqStar will only match once for all.
