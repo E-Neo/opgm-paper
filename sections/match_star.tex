@@ -78,7 +78,7 @@ SeqStar prefers vertex that
 Therefore, the size of intermediate results from star matching can be reduced.
 The neighbors of the selected root will then be added to the candidate set $R$.
 By doing so, the roots selected by Algorithm~\ref{alg:decompose_stars} will be connected and forms a \emph{connected vertex-cover}.
-And we'll use this property to build index for join operation~\ref{sec:match_join}.
+And we'll use this property to build index for join operations (\S~\ref{sec:match_join}).
 Finally, SeqStar uses the selected root to extract stars from the original pattern graph $p$.
 $\operatorname{Star}(p, root)$ is obtained by copying all the edges connected with $root$.
 Therefore, all the structural information of $p$ is inherited to the stars.}
@@ -126,7 +126,7 @@ Therefore, all the structural information of $p$ is inherited to the stars.}
 \end{algorithm}
 
 \textcolor{red}{To match a star $S$ on the vertex-centric storage engine,
-SeqStar first seeks the \textsc{VertexIter} by searching the global index of the storage engine.
+SeqStar firstly seeks the \textsc{VertexIter} by searching the global index of the storage engine.
 For each vertex $v$ in \textsc{VertexIter},
 SeqStar first checks the degree of $v$ and applies constraints if available (\S\ref{sec:match_optimize}) to determine whether $v$ could be matched.
 If $v$ passes these filters, SeqStar checks the neighbors of $v$ by visiting the \textsc{NeighborIter}.
