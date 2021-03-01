@@ -3,6 +3,15 @@ Although the general property graph matching problem is seldom discussed in prev
 simple graph isomorphism problem has been widely studied.
 
 \textbf{Graph Query Engines}.
+Table~\ref{tab:query_engines} compares SeqStar with existing work on the type of queries they support.
+Only SeqStar and Neo4j fully support the property graph model.
+Systems such as PSgL\cite{DBLP:conf/sigmod/ShaoCCMYX14}, TwinTwig\cite{DBLP:journals/pvldb/LaiQLC15},
+SEED\cite{DBLP:journals/pvldb/LaiQLZC16}, VCBC/CBF\cite{DBLP:journals/pvldb/QiaoZC17},
+Ullmann\cite{DBLP:journals/jacm/Ullmann76} and \textsc{DualSim}\cite{DBLP:conf/sigmod/KimLBHLKJ16} can only match undirected unlabeled simple graphs.
+STwig\cite{DBLP:journals/pvldb/SunWWSL12}, QFrag\cite{DBLP:conf/cloud/SerafiniMS17},
+Fractal\cite{DBLP:conf/sigmod/DiasTGM019}, QuickSI\cite{DBLP:journals/pvldb/ShangZLY08} and Turbo\textsubscript{ISO}\cite{DBLP:conf/sigmod/HanLL13} add support for vertex labels.
+Graphflow is able to match directed pattern graphs with both vertex labels and edge labels,
+however, supports for multi-edges and WHERE clause are still missing.
 
 \begin{table*}
   \caption{Graph Query Engines}\label{tab:query_engines}
@@ -27,12 +36,18 @@ simple graph isomorphism problem has been widely studied.
         Neo4j                                                   & in-memory   & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} \\
         \midrule
         \textsc{DualSim}\cite{DBLP:conf/sigmod/KimLBHLKJ16}     & out-of-core & \textcolor{red}{\XSolidBrush} & \textcolor{green}{\Checkmark} & \textcolor{red}{\XSolidBrush} & \textcolor{red}{\XSolidBrush} & \textcolor{red}{\XSolidBrush} & \textcolor{red}{\XSolidBrush} \\
-        SeqStar                                                 & out-of-core & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} \\
+        \textbf{SeqStar}                                        & out-of-core & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} & \textcolor{green}{\Checkmark} \\
         \bottomrule
   \end{tabular}
 \end{table*}
 
 \textbf{Graph Storage}.
+To the best of our knowledge,
+most graph storage engines stores the in/out-edges separately.
+For example, Graphflow~\cite{DBLP:journals/pvldb/MhedhbiS19} uses backward/forward adjacency lists to store in/out edges in memory.
+Neo4j also stores the graph in the adjacency list manner.
+And edges are grouped by their labels in order to seek to relevant edges efficiently.
+However, for complex queries especially the queries with multi-edges, random access problem is still unavoidable.
 
 \textbf{Graph Matching Algorithms}.
 Generally speaking, there are two kinds of graph isomorphism algorithms:
