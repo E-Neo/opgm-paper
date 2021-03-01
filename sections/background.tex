@@ -1,5 +1,5 @@
 \section{Background}\label{sec:background}
-A \emph{property graph} is a directed graph with labeled vertices and edges. It may also have self-loops i.e., edges connecting back to their source vertices.
+A \emph{property graph} is a directed graph with labeled vertices and edges. It may also have mult-edges connecting two verties and self-loops i.e., edges connecting back to their source vertices.
 
 \begin{definition}[Property Graph~\cite{DBLP:journals/csur/AnglesABHRV17}]
   A property graph $G$ is a tuple $(V, E, \rho, \lambda)$, where:
@@ -52,4 +52,4 @@ Existing works usually omit the searching condition $\psi$ in their definition o
 And they adopt a related technique called \emph{symmetry-breaking}~\cite{DBLP:conf/recomb/GrochowK07},
 which can be viewed as a \emph{special} case of WHERE clause by providing a partial order on $V(P)$ after exploiting the automorphism of $P$.
 However, the WHERE clause is \emph{general}. Users of real-world graph databases usually provide their self-defined searching condition $\psi$ to filter out unnecessary matching, not only symmetry-breaking conditions.
-And we also found that it can the WHERE clause can be decomposed and pushed down to lower phase to boost the evaluation of graph matching (Section~\ref{sec:match_optimize}).
+We find out that the WHERE clause can be decomposed and pushed down to lower phase to boost the evaluation of graph matching (Section~\ref{sec:match_optimize}).
