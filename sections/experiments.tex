@@ -70,7 +70,7 @@ Graphflow is the state-of-the-art in-memory subgraph querying system,
 and it is the fastest baseline we are aware of.
 Graphflow is a JVM based system, and we set the maximum size of the JVM heap to 60GB to full use of the main memory.
 However Graphflow does not support queries with multi-edges, i.e., $q_9$ --- $q_{12}$,
-and it will report fake results for these queries\footnote{Graphflow will report matchings even the data does not contain multi-edges.}.
+and it will report fake results for these queries (Graphflow will report matchings even the data does not contain multi-edges).
 Therefore we use $q_1$ --- $q_8$ to compare to Graphflow.
 Neo4j is a widely used industrial graph database, which fully supports the property graph model.
 However, Neo4j runs much slower than Graphflow and SeqStar for graph matching.
