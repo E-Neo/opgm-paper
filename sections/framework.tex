@@ -1,4 +1,5 @@
 \section{Overview of SeqStar}\label{sec:framework}
+\subsection{SeqStar Workflow}
 \begin{figure}[ht]
   \centering
   \includegraphics[width=0.48\textwidth]{img/architecture.pdf}
@@ -19,7 +20,7 @@ The core of the graph matching engine is the planner, which  decomposes the patt
 Compared with existing works, we take a step further by introducing
 (1) a matching result compression algorithm which reduces the cost of materializing intermediate results,
 (2) a predicate pushdown optimizer that is able to filter out unnecessary matchings in early stages and mitigate the burden of the join process.
-
+\subsection{Query Processing Stages}
 Here is an example of how a concrete query gets executed in SeqStar.
 Consider the Cypher (Neo4j's graph query language) query in Figure~\ref{img:cypher_query},
 which generates the pattern graph in Figure~\ref{img:running_example} (b):
