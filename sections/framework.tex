@@ -2,7 +2,7 @@
 \begin{figure}[ht]
   \centering
   \includegraphics[width=0.48\textwidth]{img/architecture.pdf}
-  \caption{The workflow of SeqStar.}\label{img:architecture}
+  \caption{SeqStar workflow.}\label{img:architecture}
 \end{figure}
 Figure~\ref{img:architecture} shows the workflow of SeqStar. There are mainly two building blocks in SeqStar: the storage engine and the property graph matching engine.
 Both are specially designed to deal with the property graph matching problem efficiently.
@@ -22,7 +22,7 @@ Compared with existing works, we take a step further by introducing
 
 Here is an example of how a concrete query gets executed in SeqStar.
 Consider the Cypher (Neo4j's graph query language) query in Figure~\ref{img:cypher_query},
-which generates the pattern graph in Figure~\ref{img:running_example}:
+which generates the pattern graph in Figure~\ref{img:running_example} (b):
 
 \begin{figure}[ht]
   \begin{Verbatim}[fontsize=\small]
@@ -38,7 +38,7 @@ which generates the pattern graph in Figure~\ref{img:running_example}:
 \begin{figure*}[ht]
   \centering
   \includegraphics[width=\textwidth]{img/running_example.pdf}
-  \caption{A running example.}\label{img:running_example}
+  \caption{Working stages of the example query.}\label{img:running_example}
 \end{figure*}
 
 The analyzer firstly analyzes the WHERE clause and extract useful filtering information for early stage filtering.

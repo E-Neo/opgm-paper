@@ -10,7 +10,7 @@ Table~\ref{tab:disk} shows the performance baseline of the SSD that we use.
 The baseline is tested by fio (2.2.10).
 Each testcase reads/writes 1GB data within 10min.
 \begin{table}
-  \caption{Disk Performance Baseline}\label{tab:disk}
+  \caption{Disk performance baseline.}\label{tab:disk}
   \begin{tabular}{rrr}
     \toprule
     mode-blocksize-iodepth-numjobs & Read (MB/s) & Write (MB/s) \\
@@ -31,7 +31,7 @@ and they are represented by the colors and patterns of lines in Figure~\ref{img:
 The queries we choose represent different topologies: trees, chains, and cyclic graphs.
 $q_9$ --- $q_{12}$ are queries with multi-edges.
 \begin{table}
-  \caption{Datasets}\label{tab:datasets}
+  \caption{Datasets.}\label{tab:datasets}
   \begin{tabular}{lrr}
     \toprule
     Name & $|V|$ & $|E|$ \\
@@ -48,7 +48,7 @@ $q_9$ --- $q_{12}$ are queries with multi-edges.
 \begin{figure}[ht]
   \centering
   \includegraphics[width=0.5\textwidth]{img/queries.pdf}
-  \caption{The queries.}\label{img:queries}
+  \caption{Test queries.}\label{img:queries}
 \end{figure}
 
 \subsection{Preprocessing Cost}
@@ -121,7 +121,7 @@ SeqStar will only generate intermediate results from star matching,
 and they can be cached in memory to boost queries.
 
 \begin{table}
-  \caption{Size of compressed intermediate results. (MB)}\label{tab:compressed}
+  \caption{Size in MB of compressed intermediate results.}\label{tab:compressed}
   \begin{tabular}{lrrrrr}
     \toprule
     $q$ &  EP &  GO &  BS &  LJ &  OK \\

@@ -9,7 +9,7 @@ Semantically, the predicates connected by the AND operator can be checked separa
 \begin{figure}[ht]
   \centering
   \includegraphics[width=.4\textwidth]{img/constraints.pdf}
-  \caption{Constraint Analysis.}\label{img:constraints}
+  \caption{Constraint analysis.}\label{img:constraints}
 \end{figure}
 
 SeqStar first applies De Morgan's law to rewrite the WHERE clause into AND-separated expressions as \emph{normal form}.
@@ -22,7 +22,7 @@ The vertex/edge-constraints are as \emph{local constraints} which are bounded to
 Local constraints can be applied during the star matching.
 
 \begin{algorithm}[ht]
-  \caption{Predicate Pushdown}\label{alg:pushdown}
+  \caption{Predicate pushdown.}\label{alg:pushdown}
   \SetKwFunction{PredicatePushdown}{\textsc{PredicatePushdown}}
   \SetKwFunction{AddVertexConstraint}{\textsc{AddVertexConstraint}}
   \SetKwFunction{AddEdgeConstraint}{\textsc{AddEdgeConstraint}}
