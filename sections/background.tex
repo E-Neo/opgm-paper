@@ -20,7 +20,7 @@ Note that the total function $\rho_G$ is necessary because of multi-edges.
 
 \begin{definition}[Vertex-Cover]
   For a property graph $G$ = ($V(G)$, $E(G)$, $\rho_G$, $\lambda_G$), a set $V_c$ ($V_c \subseteq V(G)$) is a vertex-cover of $G$
-  if $\forall e \in E(G)$, $V_c \cap \{ v_1, v_2 \} \ne \emptyset$, where $(v_1, v_2) = \rho_G$.
+  if $\forall e \in E(G)$, $V_c \cap \{ v_1, v_2 \} \ne \emptyset$, where $(v_1, v_2) = \rho_G(e)$.
 \end{definition}
 A vertex-cover $V_c$ of $G$ is a subset of $V(G)$ such that every edge of $G$ has at least one member of $V_c$ as an endpoint.
 \subsection{Property Graph Matching Problem}
