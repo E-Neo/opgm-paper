@@ -1,7 +1,7 @@
 \section{Background}\label{sec:background}
 This section introduces formal definitions of property graph and property graph matching.
 \subsection{Property Graph}
-A \emph{property graph} is a directed graph with labeled vertices and edges. It may also have mult-edges connecting two verties and self-loops i.e., edges connecting back to their source vertices.
+A \emph{property graph} is a directed graph with labeled vertices and edges. It may also have mult-edges connecting two verties.
 
 \begin{definition}[Property Graph~\cite{DBLP:journals/csur/AnglesABHRV17}]
   A property graph $G$ is a tuple $(V, E, \rho, \lambda)$, where:
@@ -16,7 +16,7 @@ A \emph{property graph} is a directed graph with labeled vertices and edges. It 
   \end{enumerate}
 \end{definition}
 A property graph $G$ is denoted as $(V(G), E(G), \rho_G, \lambda_G)$.
-Note that the total function $\rho_G$ is necessary because of the self-loops.
+Note that the total function $\rho_G$ is necessary because of multi-edges.
 
 \begin{definition}[Vertex-Cover]
   For a property graph $G$ = ($V(G)$, $E(G)$, $\rho_G$, $\lambda_G$), a set $V_c$ ($V_c \subseteq V(G)$) is a vertex-cover of $G$
@@ -44,7 +44,7 @@ The property graph isomorphism problem is to find all subgraphs of the data grap
 Unlike the simple graph model, the property graph isomorphism problem is much more complicated.
 As the vertices and edges are labeled in a property graph, we need to check  not only the topological structure,
 but also the labels to determine whether two property graphs are isomorphic.
-And the existence of multi-edge connecting two vertices and self-loops makes it even harder to check the isomorphism.
+And the existence of multi-edge connecting two vertices makes it even harder to check the isomorphism.
 \begin{definition}[Property Graph Matching]\label{def:property_graph_matching}
   Given a data property graph $D$, a pattern property graph $P$ and a searching condition $\psi: \mathcal{G} \rightarrow \mathcal{B}$ with $\mathcal{G}$ the set of property graphs and $\mathcal{B}$ the set of Boolean values,
   the property graph matching problem is to report the set $\mathcal{I} = \{H | H \subseteq D, H \cong P, \psi(H) = true\}$.

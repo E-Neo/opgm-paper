@@ -16,7 +16,7 @@ However, there are two gaps that hinder these algorithms from being widely adopt
 
 The property graph is the de facto graph model for real-world graph matching problems.
 A property graph is a directed graph with labels attached to vertices and edges.
-There may be multiple edges connecting two vertices and even edges for self-loop (edges connecting back to their source vertices).
+There may be multiple edges connecting two vertices.
 Moreover, users usually provide extra searching conditions via the WHERE clause~\cite{DBLP:journals/csur/AnglesABHRV17}.
 
 However,  current studies mostly deal with simple graph models such as ignoring the directions, labels, or multi-edges. WHERE clause is not considered either~\cite{DBLP:journals/pvldb/SunWWSL12,DBLP:conf/sigmod/HanLL13,DBLP:conf/sigmod/KimLBHLKJ16,DBLP:journals/pvldb/QiaoZC17,DBLP:journals/pvldb/MhedhbiS19}. The optimizations aimed at simple graphs usually heavily rely on the equivalence of vertices~\cite{DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/QiaoZC17}, which is harder to find in a property graph because of the complexity of directions and labels. Moreover, in the implementation level, the storage engine designed for simple graph models encounters excessive random disk seeks when matching a real-world property graph.
