@@ -1,0 +1,53 @@
+#+TITLE: VLDB 投稿改进计划
+#+AUTHOR: 崔延宣
+#+LaTeX_CLASS: article
+#+LaTeX_CLASS_OPTIONS: [11pt,a4paper]
+#+LaTeX_HEADER: \usepackage{minted}
+#+LaTeX_HEADER: \usepackage{fullpage}
+#+LaTeX_HEADER: \usepackage{fancyvrb}
+#+LaTeX_HEADER: \usepackage{enumitem}
+#+LaTeX_HEADER: \usepackage{xeCJK}
+#+LaTeX_HEADER: \usepackage{bbding}
+#+LaTeX_HEADER: \usepackage{amsthm}
+#+LaTeX_HEADER: \newtheorem{theorem}{Theorem}
+#+LaTeX_HEADER: \newtheorem{lemma}{Lemma}
+#+LaTeX_HEADER: \newtheorem{definition}{Definition}
+#+LaTeX_HEADER: \usepackage{centernot}
+#+LaTeX_HEADER: \usepackage{indentfirst}
+#+LaTeX_HEADER: \usepackage{xcolor}
+#+LaTeX_HEADER: \usepackage{array}
+#+LaTeX_HEADER: \usepackage{booktabs}
+#+LaTeX_HEADER: \usepackage[linesnumbered,ruled,noend]{algorithm2e}
+#+LaTeX_HEADER: \usepackage{siunitx}
+#+LaTeX_HEADER: \setlength\parindent{2em}
+#+OPTIONS: toc:nil
+
+* Introduction
+  - 在图结构中，形如 $u_1 \leftrightarrows u_2$ 的这种 2-cycle 结构是一种很常见的模式，
+    例如在社交网络中它可以表示互相关注的朋友关系。
+    现有的图存储方案（CSR、CSC、链表）出边、入边信息存在分裂，匹配含有 2-cycle 结构的模式图需要很大的开销：
+    一种做法是分别匹配 $u_1 \rightarrow u_2$ 和 $u_2 \rightarrow u_1$ 再做 join；
+    另一种做法是匹配 $u_1 \rightarrow u_2$ 同时检查是否存在 $u_2 \rightarrow u_1$ 的边。
+    这两种做法最坏时间复杂度都是 $O(m^2)$ （其中 $m$ 是数据图中边的条数）。
+    为了解决这一问题，我们设计了一种新的 vertex-centric 数据图存储模型，将出边、入边信息直接和节点绑定到一起，
+    可以在 $O(m)$ 的时间复杂度通过磁盘顺序扫描同时检查出边和入边的拓扑完成 2-cycle 的匹配。
+    /（突出 vertex-centric 的不同，单独作为一点）/
+  - 基于 vertex-centric 数据图存储模型，我们设计了一种基于星形子图匹配的通用属性图匹配方法。
+    现有的基于星形子图的匹配方案例如 STwig 由于叶子节点匹配结果的枚举会带来超线性中间结果膨胀，
+    为了缓解这一问题 TwinTwig 限制星形图最多只有两个叶子节点。
+    但是我们发现叶子节点越多，匹配结果的过滤能力越强，丢弃叶子节点会使得中间结果中包含大量无效匹配，加重后续 join 的负担；
+    中间结果膨胀可以在根本上通过压缩的方式避免，基于 VCBC、factorized representation，我们设计了星形图匹配结果的 SuperRow 存储方法。
+    只需磁盘顺序读写即可完成星形图的匹配。
+    利用 vertex-centric 节点存储的有序性，SuperRow 可以高效地 zero-copy merge join 以获取最终结果。
+    /（WHERE 语句在正文中提一下，由于 Reviewer 2 不看好 SuperRow，我们不再压缩单独作为一点，把它和星形子图分解放到一起。）/
+  - 为了加速匹配过程中节点的查找，我们为 vertex-centric 存储模型设计了 global/local 两种索引结构。
+    /（由于 Reviewer 1 和 3 都想看看不同 label 个数的影响，所以把 index 单独拎出来作为一点和后面的实验进行呼应）。/
+* 实验
+  1. 整体性能对比（Graphflow、CFL、Neo4j），并保留现有实验的：
+     - 压缩率
+     - 谓词下推
+     - join 测试
+  2. vertex-centric vs. CSR，重点比较匹配 $u_1 \leftrightarrows u_2$ 的差距
+  3. 局部索引性能提升（设置不同的 label 数与没有局部索引的进行对比）
+  4. 星形子图分解改进提升
+  5. 不同星形子图分解方法的影响
