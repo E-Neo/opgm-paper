@@ -1,4 +1,4 @@
-#+TITLE: VLDB 投稿改进计划
+#+TITLE: Vertex-Centric: A Graph Matching Friendly On-Disk Index
 #+AUTHOR: 崔延宣
 #+LaTeX_CLASS: article
 #+LaTeX_CLASS_OPTIONS: [11pt,a4paper]
@@ -23,52 +23,81 @@
 #+OPTIONS: toc:nil
 
 * Introduction
-  - 在图结构中，形如 $u_1 \leftrightarrows u_2$ 的这种 2-cycle 结构是一种很常见的模式，
-    例如在社交网络中它可以表示互相关注的朋友关系。
-    #+NAME: tab:2-cycle
-    #+CAPTION: 数据图统计信息
-    |------------------+---------------+---------------+-----------+------------|
-    |                  | $\mid V \mid$ | $\mid E \mid$ | # 2-cycle |      ratio |
-    |------------------+---------------+---------------+-----------+------------|
-    | soc-Epinions1    |         75879 |        508837 |    103097 | 0.25409622 |
-    | web-BerkStan     |        685230 |       7600595 |    951125 | 0.14303772 |
-    | web-Google       |        875713 |       5105039 |    782988 | 0.18116121 |
-    | soc-LiveJournal1 |       4847571 |      68993773 |  25624154 | 0.59083189 |
-    |------------------+---------------+---------------+-----------+------------|
-    #+TBLFM: @2$5..@>$5 = $4 / ($3 - $4)
-    现有的图存储方案（CSR、CSC、链表）出边、入边信息存在分裂，匹配含有 2-cycle 结构的模式图需要很大的开销：
-    一种做法是分别匹配 $u_1 \rightarrow u_2$ 和 $u_2 \rightarrow u_1$ 再做 join；
-    另一种做法是匹配 $u_1 \rightarrow u_2$ 同时检查是否存在 $u_2 \rightarrow u_1$ 的边。
-    这两种做法最坏时间复杂度都是 $O(m^2)$
-    （其中 $m$ 是数据图中边的条数，由于出、入边拓扑是分裂的，无法事先知道数据图中的某个节点是否具有 2-cycle 结构，
-    因此匹配时需要对所有待匹配节点的出边、入边进行检查，而不仅仅是表[[tab:2-cycle]]中 2-cycle 那部分。）
-    为了解决这一问题，我们设计了一种新的 vertex-centric 数据图存储模型，将出边、入边信息直接和节点绑定到一起，
-    可以在 $O(m)$ 的时间复杂度通过磁盘顺序扫描同时检查出边和入边的拓扑完成 2-cycle 的匹配。
-    /（突出 vertex-centric 的不同，单独作为一点）/
-  - 由于图匹配问题的复杂性，很容易产生超线性增长的中间结果，这些中间结果会给存储和之后的计算带来巨大的压力。
-    VCBC 是第一个专门针对图匹配结果的压缩算法，它将模式图中的节点分为两部分：
-    vertex-cover $V_C$ 和非 vertex-cover $\overline{V_C}$ ，
-    只需枚举 $V_C$ 的匹配结果，$\overline{V_C}$ 可以根据 $V_C$ 的匹配进行分组用数组的方式紧凑存储。
-    （从关系型数据库的角度来看，图匹配结果可以看做一系列关系行，因此 VCBC 也等价于关系型数据库中的 factorized representation。）
-    但仅枚举 vertex-cover 也是会带来不小的中间结果膨胀，VCBC 发现 390MB 的数据图可以产生 245TB 的压缩中间结果（超线性膨胀）。
-    $|V_C|$ 越小 VCBC 的压缩率越大，当 $|V_C| = 1$ 时（星形图）可以证明匹配结果大小只会随图的规模线性增长，
-    基于这一发现我们设计了一种基于星形图的匹配方法，匹配过程中只需存储星形图的压缩匹配结果。
-    和现有的基于星形子图的匹配方案相比，我们的星形图分解算法最大程度地保留原模式图中的过滤信息，从而可以更早去除无效匹配。
-    为了保障外存效率，我们为 SuperRow 设计了空间预分配策略，只需磁盘顺序读写即可完成星形图的匹配。
-    /（WHERE 语句在正文中提一下，由于 Reviewer 2 不看好 SuperRow，我们不再压缩单独作为一点，把它和星形子图分解放到一起。
-    zero-copy merge join 在正文中作为优化介绍）/
-  - 为了加速匹配过程中节点的查找，我们为 vertex-centric 存储模型设计了 global/local 两种索引结构。
-    全局索引比较平凡，对图中的节点根据标签分组建立索引。
-    数据图通常都符合 power-law，图中某些节点的出度或入度可以非常巨大，但具体的匹配问题只关心这些名人节点具有特定标签的邻接点，
-    因此匹配时没必要对所有的邻接点都进行遍历，
-    我们的局部索引对邻接点根据标签进行分组，每个节点都有一个局部索引和它在一起存储，通过局部索引可以减少不必要的磁盘读。
-    /（由于 Reviewer 1 和 3 都想看看不同 label 个数的影响，所以把 index 单独拎出来作为一点和后面的实验进行呼应）。/
-* 实验
-  1. 整体性能对比（Graphflow、CFL、Neo4j），并保留现有实验的：
-     - 压缩率
-     - 谓词下推
-     - join 测试
-  2. vertex-centric vs. CSR，重点比较匹配 $u_1 \leftrightarrows u_2$ 的差距
-  3. 局部索引性能提升（设置不同的 label 数与没有局部索引的进行对比）
-  4. 星形子图分解改进提升
-  5. 不同星形子图分解方法的影响
+  Graph matching is one of the most important applications of graph databases.
+  In graph matching, a relative small *pattern graph* is used to match subgraphs of a relative large *data graph*.
+  It is widely used in many fields, such as Twitter's recommendation systems\cite{DBLP:journals/pvldb/GuptaSGGZLL14,DBLP:journals/pvldb/SharmaJBLL16},
+  electronic computer-aided design\cite{DBLP:conf/dac/OhlrichEGS93},
+  protein-protein interaction (PPI) networks\cite{milenkovic2008uncovering},
+  and COVID-19 epidemic emergency management\cite{info:doi/10.2196/26836}.
+
+  图匹配问题通常有两种解决途径：一种是 tree based，另一种是 join based，
+  这两种方法都需要底层存储能够快速地对邻接点拓扑进行检查。
+  在图结构中，形如 $u_1 \leftrightarrows u_2$ 的这种 2-cycle 结构是一种很常见的模式，
+  例如在社交网络中它可以表示互相关注的朋友关系。
+  对 2-cycle 高效匹配具有重要现实意义。
+  #+NAME: tab:2-cycle
+  #+CAPTION: 数据图统计信息
+  |------------------+---------------+---------------+-----------+------------|
+  |                  | $\mid V \mid$ | $\mid E \mid$ | # 2-cycle |      ratio |
+  |------------------+---------------+---------------+-----------+------------|
+  | soc-Epinions1    |         75879 |        508837 |    103097 | 0.25409622 |
+  | web-BerkStan     |        685230 |       7600595 |    951125 | 0.14303772 |
+  | web-Google       |        875713 |       5105039 |    782988 | 0.18116121 |
+  | soc-LiveJournal1 |       4847571 |      68993773 |  25624154 | 0.59083189 |
+  |------------------+---------------+---------------+-----------+------------|
+  #+TBLFM: @2$5..@>$5 = $4 / ($3 - $4)* Background
+
+  然而现有的图存储和索引方法并不利于解决这种图匹配问题。
+  一方面，现有的图存储方法，例如 CSC（只存出边）、CSR（只存入边）或者 linked list（存出边、入边）都将出边、入边的拓扑信息分离存储，
+  导致在匹配 2-cycle 时不得不执行复杂的查找或者 join 计算，具有 $O(m^2)$ 的时间复杂度；
+  另一方面，现有的图索引结构为了加速匹配常需要超线性增长的空间，可扩展性差。
+
+  为了解决这些问题，我们提出了一种新的 vertex-centric graph index，将出入边的拓扑信息和邻接点直接存储在一起。
+  使用这种索引匹配 2-cycle 只需 $O(m)$ 的时间复杂度；并且没有随机 I/O。
+
+  power-law graph 中有些节点具有数量庞大的邻接点，匹配过程中遍历这些邻接点 I/O 开销会很大。
+  我们注意到图匹配问题中，节点是具有标签的，用户只关注某些类型的邻接点。
+  根据这一发现我们设计了一种局部索引结构，对邻接点根据标签分类存储，从而读取时可以按需读取。
+
+  基于 vertex-centric graph index，我们设计了一种 star based graph matching engine。
+  相较于现有的 star based matching algorithm，我们的方法可以避免拓扑信息丢失问题，从而较少中间结果即后续 join 的开销。
+  为了避免 join based 方法具有的中间结果膨胀问题，
+  我们采用 SuperRow 中间结果存储方法，及 pipeline SuperRow join 保证不会出现中间结果的超线性膨胀。
+
+  最后通过实验，验证具有 xxx 的性能提升。
+* Background
+  - (formal definition) 读 FAST 文章，看它们的写作风格
+  - current graph storage/index 及存在的问题
+* Vertex-Centric Graph Index
+  1. Vertex-Centric Graph Index (问题、解决方案、好处)
+  2. Local Index
+* Star Based Graph Matching
+  1. star decomposition algorithms
+  2. SuperRow
+  3. pipeline SuperRow join
+* Evaluation
+  1. end to end comparison (Graphflow, CFL, Neo4j, NebulaGraph, 其他待定)
+     - 分析存在的问题
+     - 分析为什么比我们慢
+     - 分析失败原因（内存不足）
+  2. Effect of Vertex-Centric Index
+     1. 变化 number of vertex labels 比较时间
+        - vertex-centric with local index
+        - vertex-centric without local index
+        - in/out-edge split
+     2. 和其他图索引结构比较空间大小
+  3. Graph Matching
+     1. 比较不同 star decomposition algorithms 产生的中间结果大小
+     2. 测试 SuperRow compression ratio
+  4. （待定：测不同内存大小下的 holistic/scan/join 性能）
+* Archive
+  [[file:archive/20210704.org][2021-07-04]]
+* References
+  :PROPERTIES:
+  :UNNUMBERED: t
+  :END:
+  #+LaTeX: \label{sec:references}
+  #+LaTeX: \addcontentsline{toc}{section}{\nameref{sec:references}}
+  #+LaTeX: \renewcommand*{\refname}{\vspace*{-2em}}
+  #+LaTeX: \bibliographystyle{acm}
+  #+LaTeX: \bibliography{../refs}
