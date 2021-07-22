@@ -1,1 +1,15 @@
 \section{Introduction}
+Graph matching is one of the most important applications of graph databases.
+Given a pattern graph $p$ and a data graph $d$, the graph matching problem is to find all the subgraphs of $d$ that are isomorphic to $p$.
+It is widely used in many fields,
+such as Twitter's recommendation systems~\cite{DBLP:journals/pvldb/GuptaSGGZLL14,DBLP:journals/pvldb/SharmaJBLL16},
+electronic computer-aided design~\cite{DBLP:conf/dac/OhlrichEGS93},
+protein-protein interaction (PPI) networks~\cite{milenkovic2008uncovering},
+and epidemic emergency management~\cite{info:doi/10.2196/26836}.
+
+The workloads of graph matching present great challenges for system designers.
+(1) The graphs are directed and labeled (vertices and edges), and multiple edges may present in the graphs.
+In order to run the graph matching algorithm with a high performance, the underlying graph storage must support these features efficiently.
+(2) The matching results grow exponentially with respect to the size of the data graph.
+Qiao et al. found that a 390-megabyte data graph can result in 25-terabyte intermediate results, even though they are compressed~\cite{DBLP:journals/pvldb/QiaoZC17}.
+As data graphs are much larger nowadays, the graph matching system must handle the intermediate results properly.
