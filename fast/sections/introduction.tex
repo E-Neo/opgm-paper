@@ -8,8 +8,34 @@ protein-protein interaction (PPI) networks~\cite{milenkovic2008uncovering},
 and epidemic emergency management~\cite{info:doi/10.2196/26836}.
 
 The workloads of graph matching present great challenges for system designers.
-(1) The graphs are directed and labeled (vertices and edges), and multiple edges may present in the graphs.
+(1) The graphs are directed and labeled, and multiple edges may present between a pair of vertices.
 In order to run the graph matching algorithm with a high performance, the underlying graph storage must support these features efficiently.
 (2) The matching results grow exponentially with respect to the size of the data graph.
 Qiao et al. found that a 390-megabyte data graph can result in 25-terabyte intermediate results, even though they are compressed~\cite{DBLP:journals/pvldb/QiaoZC17}.
-As data graphs are much larger nowadays, the graph matching system must handle the intermediate results properly.
+As graphs are much larger nowadays, the system must handle the intermediate results properly.
+(3) Many graphs exhibit a power-law distribution on the degree of vertices.
+Cutting a graph into balanced communities to optimize locality and network communications is difficult~\cite{DBLP:journals/im/LeskovecLDM09}.
+As a result, it is hard to address the problem efficiently via distributed memory systems.
+
+Existing graph matching algorithms can be categorized into \emph{exploration-based} and \emph{join-based} methods based on their graph scanning patterns~\cite{DBLP:journals/pvldb/SunSC0H20}.
+The exploration-based algorithms~\cite{DBLP:journals/jacm/Ullmann76,DBLP:journals/pami/CordellaFSV04,DBLP:journals/pvldb/ShangZLY08,DBLP:conf/sigmod/HeS08,DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/ZhaoH10,DBLP:journals/pvldb/LeeHKL12}
+iteratively extend the intermediate results by exploring and checking vertices in $d$ according the visiting order of vertices in $p$.
+In contrast, the join-based algorithms~\cite{DBLP:journals/pvldb/LaiQLC15,DBLP:journals/pvldb/QiaoZC17,DBLP:journals/pvldb/SunWWSL12,DBLP:journals/pvldb/MhedhbiS19,DBLP:journals/pvldb/LinMPS16,DBLP:journals/pvldb/AmmarMSJ18} split the pattern graph $p$ into smaller matching units, scan the data graph $d$ and match the units, then obtain the final results by joining on the intermediate data.
+Clearly, both exploration-based and join-based algorithms rely on the fast neighborhood checking ability provided by the underlying graph storage.
+
+Most graph storage methods are based on the technologies to store sparse matrix.
+The basic idea is to store the edges, and provide fast in/out-edges accesses by partitioning on the destination/source vertices.
+For example, compressed sparse row (CSR)~\cite{1447941} stores the edges consecutively, where edges are partitioned by sources.
+Given a vertex $v$, CSR returns a (position, offset) pair to locate the out-edges of $v$.
+Compressed sparse column (CSC) can be viewed as the transpose of CSR, and it provides fast access to in-edges of a given vertex.
+Neo4j~\cite{Neo4j} has a linked list based implementation to store the edges, and can visit both in/out-edges efficiently by storing the (reference of) edges twice.
+
+The traditional in/out-edges access pattern works fine if only vertices were not allowed to follow each other.
+However, the 2-cycle ($u_1 \leftrightarrows u_2$) structures are prevalent among social networks and web graphs (Table TODO).
+For these graphs, the matching process will be very inefficient if the graph storage adopts the in/out-edge splitting model:
+(1) For each vertex $v$ in the data graph $d$, one have to scan the out-edges of $v$ and then check whether the destination vertex has an incoming edge;
+Or (2) use a join-based algorithm to match $u_1 \rightarrow u_2$ and $u_1 \leftarrow u_2$ separately, then join them together.
+Both of them run in $O(m^2)$ time, where $m$ is the number of edges in $d$.
+And it is even worse if more edges present in the pattern graph.
+
+In this paper, we present SeqStar, an efficient index for graph matching problems.
