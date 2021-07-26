@@ -10,11 +10,11 @@ and epidemic emergency management~\cite{info:doi/10.2196/26836}.
 The workloads of graph matching present great challenges for system designers.
 (1) The graphs are directed and labeled, and multiple edges may present between a pair of vertices.
 In order to run the graph matching algorithm with a high performance, the underlying graph storage must support these features efficiently.
-(2) The matching results grow exponentially with respect to the size of the data graph.
+(2) Many graphs exhibit a power-law distribution on the degree of vertices.
+Cutting a graph into balanced communities to optimize locality and network communications is difficult~\cite{DBLP:journals/im/LeskovecLDM09}.
+(3) The matching results grow exponentially with respect to the size of the data graph.
 Qiao et al. found that a 390-megabyte data graph can result in 25-terabyte intermediate results, even though they are compressed~\cite{DBLP:journals/pvldb/QiaoZC17}.
 As graphs are much larger nowadays, the system must handle the intermediate results properly.
-(3) Many graphs exhibit a power-law distribution on the degree of vertices.
-Cutting a graph into balanced communities to optimize locality and network communications is difficult~\cite{DBLP:journals/im/LeskovecLDM09}.
 As a result, it is hard to address the problem efficiently via distributed memory systems.
 
 Existing graph matching algorithms can be categorized into \emph{exploration-based} and \emph{join-based} methods based on their graph scanning patterns~\cite{DBLP:journals/pvldb/SunSC0H20}.
@@ -33,9 +33,44 @@ Neo4j~\cite{Neo4j} has a linked list based implementation to store the edges, an
 The traditional in/out-edges access pattern works fine if only vertices were not allowed to follow each other.
 However, the 2-cycle ($u_1 \leftrightarrows u_2$) structures are prevalent among social networks and web graphs (Table TODO).
 For these graphs, the matching process will be very inefficient if the graph storage adopts the in/out-edge splitting model:
-(1) For each vertex $v$ in the data graph $d$, one have to scan the out-edges of $v$ and then check whether the destination vertex has an incoming edge;
+(1) For each vertex $v$ in the data graph $d$, one have to scan the out-edges of $v$, and explore every destination vertex to check whether it has an incoming edge;
 Or (2) use a join-based algorithm to match $u_1 \rightarrow u_2$ and $u_1 \leftarrow u_2$ separately, then join them together.
 Both of them run in $O(m^2)$ time, where $m$ is the number of edges in $d$.
-And it is even worse if more edges present in the pattern graph.
+Note that simply save the edges twice as in/out-edges will not improve the performance.
+And it is even worse if more 2-cycle structures present in the pattern graph.
 
-In this paper, we present SeqStar, an efficient index for graph matching problems.
+In this paper, we present SeqStar, an efficient on-disk index for graph matching problems.
+Prior indexes can be categorized into two aspects:
+(1) \emph{adjacency indexes}~\cite{bonifati2018querying} use different partitioning techniques to provide constant time access to neighbors vertices.
+For example, CSR partitions the edges by source vertices, and some systems provide secondary level partitioning in these structure by edge labels~\cite{DBLP:conf/icde/MhedhbiGKS21}.
+(2) \emph{structural indexes}~\cite{DBLP:conf/europar/SumrallFPSVVW16,DBLP:journals/pvldb/LaiQLZC16,DBLP:journals/pvldb/ZhuQLYHY11} index more complex structures such as paths, cliques, or frequent subgraphs.
+However, these indexes are not designed for the complex pattern matching problems as we stated before.
+Moreover, many prior structural indexes require super-linear indexing space~\cite{DBLP:journals/pvldb/SunWWSL12}.
+
+To close the gap between complex matching problems and the unsatisfactory graph storage,
+We propose a new \emph{vertex-centric} storage model for SeqStar and introduces a novel access pattern on top of it.
+Instead of storing the in/out-edges \emph{separately}, SeqStar stores the relationships \emph{together} with the neighbor vertices.
+SeqStar advocates a new paradigm that neighbors are accessed via vertices, rather than in/out-edges.
+We provide two kinds of iterators to visit the data graph:
+(1) \textsc{VertexIter} visits the data vertices, and (2) \textsc{NeighborIter} visits the neighbor vertices of a given data vertex.
+In/out-edge topologies are associated with the neighbor vertex.
+Therefore, 2-cycles or more complex multiple edges can be checked within a single sequential scan ($O(m)$).
+Experiments show that TODO\@.
+
+For large power-law graphs such as social network, the degree of celebrities or trending topics can be tremendous.
+Reducing the amount of I/O for the neighborhood checking process of the celebrities directly improves performance.
+SeqStar introduces \emph{local indexes} to partition the neighbor vertices.
+Instead of storing the indexes separately by references, the local indexes are stored together with the corresponding vertices.
+Therefore, the on-disk layout of the local indexes has a better locality.
+Experiments show that TODO\@.
+
+On top of SeqStar's vertex-centric graph index, we take more steps and build a star-based graph matching engine.
+(1) Prior star-based graph matching algorithms such as STwig~\cite{DBLP:journals/pvldb/SunWWSL12} and TwinTwig~\cite{DBLP:journals/pvldb/LaiQLC15} also decompose the pattern graph into stars.
+However, we found that these systems will lose valuable structural information in their stars, and result in many unnecessary intermediate results.
+To address this problem, we introduce a new star decomposition algorithm that will preserve all the necessary filtering information.
+Experiments show that TODO\@.
+(2) We adopt and improve the vertex cover based compression algorithm (VCBC)~\cite{DBLP:journals/pvldb/QiaoZC17} to store the star matching results as \emph{SuperRows}.
+We found that VCBC still suffer from super-linear intermediate data explosion, where MB-sized graph may generate TB-sized matching data.
+In contrast, SuperRow ensures the intermediate data always grows \emph{linearly}.
+SeqStar obtains the final results by applying parallel pipeline join on the SuperRows.
+Experiments show that TODO\@.
