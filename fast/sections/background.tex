@@ -1,1 +1,61 @@
 \section{Background}\label{sec:background}
+This section introduces some formal definitions related to the graph matching problem.
+
+\subsection{Property Graph}
+A \emph{property graph} is a directed graph with labeled vertices and edges.
+Cycles and multiple edges (parallel arcs with the same source and destination) may also present between a pair of vertices.
+
+\begin{definition}[Property Graph~\cite{DBLP:journals/csur/AnglesABHRV17}]
+  A property graph $G$ is a tuple $(V, E, \rho, \lambda, \sigma)$, where:
+  \begin{enumerate}[noitemsep,label={(\arabic*)}]
+  \item $V$ is a finite set of vertices.
+  \item $E$ is a finite set of edges.
+  \item $\rho: E \rightarrow (V \times V)$ is a total function.
+    Intuitively, $\rho(e) = (v_1, v_2)$ indicates that $e$ is a directed edge from $v_1$ to $v_2$.
+  \item $\lambda: (V \cup E) \rightarrow L$ is a total function where $L$ is a set of labels.
+    Intuitively, if $v \in V, \rho(v) = l$ (respectively, $e \in E, \rho(e) = l$),
+    $l$ is the label of vertex $v$ (respectively, edge $e$).
+  \item $\sigma: (V \cup E) \times Prop \rightarrow Val$ is a partial function assigning values for properties to vertices/edges.
+  \end{enumerate}
+\end{definition}
+
+Formally, a property graph $G$ can be denoted as a 5-tuple $(V(G), E(G), \rho_G, \lambda_G, \sigma_G)$.
+Under the property graph model, each vertex/edge has a single label representing the type of the entity/relationship.
+Key-value pairs are associated with vertices and edges to represent the attributes, e.g., every vertex has a ID property storing an integer as the identifier of the vertex.
+The property graph model is widely adopted by major industrial graph databases, such as Neo4j~\cite{Neo4j}.
+
+\begin{definition}[Vertex Cover]
+  For a property graph $G$ = ($V(G)$, $E(G)$, $\rho_G$, $\lambda_G$), a set $V_c$ ($V_c \subseteq V(G)$) is a vertex cover of $G$
+  if $\forall e \in E(G)$, $V_c \cap \{ v_1, v_2 \} \ne \emptyset$, where $(v_1, v_2) = \rho_G(e)$.
+\end{definition}
+A vertex cover $V_c$ of $G$ is a subset of $V(G)$ such that every edge of $G$ has at least one member of $V_c$ as an endpoint.
+
+\subsection{Property Graph Matching Problem}
+\begin{definition}[Subgraph]
+  A property graph $H$ is called a subgraph of a property graph $G$, denoted as $H \subseteq G$, if
+  $V(H) \subseteq V(G)$, $E(H) \subseteq E(G)$, $\rho_H$ is a restriction of $\rho_G$, and $\lambda_H$ is a restriction of $\lambda_G$.
+\end{definition}
+Note that the restriction means the subgraph $H$ must contain all edges in $G$ connecting all vertices in $H$.
+
+\begin{definition}[Property Graph Isomorphism]
+  Two property graphs $G$ and $H$ are isomorphic, denoted as $G \cong H$,
+  if there exists bijections $\theta: V(G) \rightarrow V(H)$ and $\phi: E(G) \rightarrow E(H)$ such that
+  $\rho_G(e) = (u, v)$ if and only if $\rho_H(\phi(e)) = (\theta(u), \theta(v))$,
+  $\lambda_G(v) = \lambda_H(\theta(v))$ for all $v \in V(G)$
+  and $\lambda_G(e) = \lambda_H(\phi(e))$ for all $e \in E(G)$;
+  Such a pair of mappings is called an isomorphism between $G$ and $H$.
+\end{definition}
+The property graph isomorphism problem is to find all subgraphs of the data graph that are isomorphic to the pattern.
+Unlike the simple graph model, the property graph isomorphism problem is much more complicated.
+As the vertices and edges are labeled in a property graph, we need to check  not only the topological structure,
+but also the labels to determine whether two property graphs are isomorphic.
+And the existence of multi-edge connecting two vertices makes it even harder to check the isomorphism.
+\begin{definition}[Property Graph Matching]\label{def:property_graph_matching}
+  Given a data property graph $D$, a pattern property graph $P$ and a searching condition $\psi: \mathcal{G} \rightarrow \mathcal{B}$ with $\mathcal{G}$ the set of property graphs and $\mathcal{B}$ the set of Boolean values,
+  the property graph matching problem is to report the set $\mathcal{I} = \{H | H \subseteq D, H \cong P, \psi(H) = true\}$.
+\end{definition}
+The property graph matching problem extends the property graph isomorphism problem by introducing the searching conditions (WHERE clauses).
+Existing works usually omit the searching condition $\psi$ in their definition of graph matching~\cite{DBLP:conf/sigmod/ShaoCCMYX14,DBLP:journals/pvldb/LaiQLC15,DBLP:conf/sigmod/KimLBHLKJ16,DBLP:journals/pvldb/QiaoZC17}.
+And they adopt a related technique called \emph{symmetry-breaking}~\cite{DBLP:conf/recomb/GrochowK07},
+which can be viewed as a \emph{special} case of WHERE clause by providing a partial order on $V(P)$ after exploiting the automorphism of $P$.
+However, the WHERE clause is \emph{general}. Users of real-world graph databases usually provide their self-defined searching condition $\psi$ to filter out unnecessary matching, not only symmetry-breaking conditions.

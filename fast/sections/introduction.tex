@@ -1,6 +1,6 @@
 \section{Introduction}
 Graph matching is one of the most important applications of graph databases.
-Given a pattern graph $p$ and a data graph $d$, the graph matching problem is to find all the subgraphs of $d$ that are isomorphic to $p$.
+Given a pattern graph $P$ and a data graph $D$, the graph matching problem is to find all the subgraphs of $D$ that are isomorphic to $P$.
 It is widely used in many fields,
 such as Twitter's recommendation systems~\cite{DBLP:journals/pvldb/GuptaSGGZLL14,DBLP:journals/pvldb/SharmaJBLL16},
 electronic computer-aided design~\cite{DBLP:conf/dac/OhlrichEGS93},
@@ -8,7 +8,7 @@ protein-protein interaction (PPI) networks~\cite{milenkovic2008uncovering},
 and epidemic emergency management~\cite{info:doi/10.2196/26836}.
 
 The workloads of graph matching present great challenges for system designers.
-(1) The graphs are directed and labeled, and multiple edges may present between a pair of vertices.
+(1) The property graphs are directed and labeled, and multiple edges may present between a pair of vertices.
 In order to run the graph matching algorithm with a high performance, the underlying graph storage must support these features efficiently.
 (2) Many graphs exhibit a power-law distribution on the degree of vertices.
 Cutting a graph into balanced communities to optimize locality and network communications is difficult~\cite{DBLP:journals/im/LeskovecLDM09}.
@@ -19,8 +19,8 @@ As a result, it is hard to address the problem efficiently via distributed memor
 
 Existing graph matching algorithms can be categorized into \emph{exploration-based} and \emph{join-based} methods based on their graph scanning patterns~\cite{DBLP:journals/pvldb/SunSC0H20}.
 The exploration-based algorithms~\cite{DBLP:journals/jacm/Ullmann76,DBLP:journals/pami/CordellaFSV04,DBLP:journals/pvldb/ShangZLY08,DBLP:conf/sigmod/HeS08,DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/ZhaoH10,DBLP:journals/pvldb/LeeHKL12}
-iteratively extend the intermediate results by exploring and checking vertices in $d$ according the visiting order of vertices in $p$.
-In contrast, the join-based algorithms~\cite{DBLP:journals/pvldb/LaiQLC15,DBLP:journals/pvldb/QiaoZC17,DBLP:journals/pvldb/SunWWSL12,DBLP:journals/pvldb/MhedhbiS19,DBLP:journals/pvldb/LinMPS16,DBLP:journals/pvldb/AmmarMSJ18} split the pattern graph $p$ into smaller matching units, scan the data graph $d$ and match the units, then obtain the final results by joining on the intermediate data.
+iteratively extend the intermediate results by exploring and checking vertices in $D$ according the visiting order of vertices in $P$.
+In contrast, the join-based algorithms~\cite{DBLP:journals/pvldb/LaiQLC15,DBLP:journals/pvldb/QiaoZC17,DBLP:journals/pvldb/SunWWSL12,DBLP:journals/pvldb/MhedhbiS19,DBLP:journals/pvldb/LinMPS16,DBLP:journals/pvldb/AmmarMSJ18} split the pattern graph $P$ into smaller matching units, scan the data graph $D$ and match the units, then obtain the final results by joining on the intermediate data.
 Clearly, both exploration-based and join-based algorithms rely on the fast neighborhood checking ability provided by the underlying graph storage.
 
 Most graph storage methods are based on the technologies to store sparse matrix.
@@ -33,9 +33,9 @@ Neo4j~\cite{Neo4j} has a linked list based implementation to store the edges, an
 The traditional in/out-edges access pattern works fine if only vertices were not allowed to follow each other.
 However, the 2-cycle ($u_1 \leftrightarrows u_2$) structures are prevalent among social networks and web graphs (Table TODO).
 For these graphs, the matching process will be very inefficient if the graph storage adopts the in/out-edge splitting model:
-(1) For each vertex $v$ in the data graph $d$, one have to scan the out-edges of $v$, and explore every destination vertex to check whether it has an incoming edge;
+(1) For each vertex $v$ in the data graph $D$, one have to scan the out-edges of $v$, and explore every destination vertex to check whether it has an incoming edge;
 Or (2) use a join-based algorithm to match $u_1 \rightarrow u_2$ and $u_1 \leftarrow u_2$ separately, then join them together.
-Both of them run in $O(m^2)$ time, where $m$ is the number of edges in $d$.
+Both of them run in $O(m^2)$ time, where $m$ is the number of edges in $D$.
 Note that simply save the edges twice as in/out-edges will not improve the performance.
 And it is even worse if more 2-cycle structures present in the pattern graph.
 
@@ -70,7 +70,7 @@ However, we found that these systems will lose valuable structural information i
 To address this problem, we introduce a new star decomposition algorithm that will preserve all the necessary filtering information.
 Experiments show that TODO\@.
 (2) We adopt and improve the vertex cover based compression algorithm (VCBC)~\cite{DBLP:journals/pvldb/QiaoZC17} to store the star matching results as \emph{SuperRows}.
-We found that VCBC still suffer from super-linear intermediate data explosion, where MB-sized graph may generate TB-sized matching data.
+We found that VCBC still suffer from super-linear intermediate data explosion, where MB-sized graph may generate TB-sized intermediate data.
 In contrast, SuperRow ensures the intermediate data always grows \emph{linearly}.
 SeqStar obtains the final results by applying parallel pipeline join on the SuperRows.
 Experiments show that TODO\@.
