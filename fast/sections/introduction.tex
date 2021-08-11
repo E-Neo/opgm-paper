@@ -12,10 +12,11 @@ The workloads of graph matching present great challenges for system designers.
 In order to run the graph matching algorithm with a high performance, the underlying graph storage must support these features efficiently.
 (2) Many graphs exhibit a power-law distribution on the degree of vertices.
 Cutting a graph into balanced communities to optimize locality and network communications is difficult~\cite{DBLP:journals/im/LeskovecLDM09}.
+As a result, it is hard to address the problem efficiently via distributed memory systems.
 (3) The matching results grow exponentially with respect to the size of the data graph.
 Qiao et al\@. found that a 390-megabyte data graph can result in 25-terabyte intermediate results, even though they are compressed~\cite{DBLP:journals/pvldb/QiaoZC17}.
 As graphs are much larger nowadays, the system must handle the intermediate results properly.
-As a result, it is hard to address the problem efficiently via distributed memory systems.
+It is more and more desirable to leverage out-of-core storage to address the graph matching problem.
 
 Existing graph matching algorithms can be categorized into \emph{exploration-based} and \emph{join-based} methods based on their graph scanning patterns~\cite{DBLP:journals/pvldb/SunSC0H20}.
 The exploration-based algorithms~\cite{DBLP:journals/jacm/Ullmann76,DBLP:journals/pami/CordellaFSV04,DBLP:journals/pvldb/ShangZLY08,DBLP:conf/sigmod/HeS08,DBLP:conf/sigmod/HanLL13,DBLP:journals/pvldb/ZhaoH10,DBLP:journals/pvldb/LeeHKL12}
