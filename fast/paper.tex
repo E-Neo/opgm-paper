@@ -4,10 +4,16 @@
 \usepackage[inline]{enumitem}
 \usepackage{amssymb}
 \usepackage{amsmath}
+\usepackage{amsthm}
 \usepackage{graphicx}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{tikz}
 
+\newcommand*\circled[1]{\tikz[baseline = (char.base)]{
+    \node[shape=circle,draw,inner sep=1pt] (char) {#1};}}
+\newcommand*\framed[1]{\tikz[baseline = (char.base)]{
+    \node[shape=rectangle,draw,inner sep=1pt] (char) {#1};}}
 \newtheorem{definition}{Definition}
 
 \begin{document}
